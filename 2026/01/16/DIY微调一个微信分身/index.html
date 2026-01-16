@@ -1,0 +1,320 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>DIY微调一个微信分身 | 5ha的个人空间</title><meta name="author" content="5ha"><meta name="copyright" content="5ha"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="LLM微调Demo项目1.LLama-Factory环境的搭建LLaMA-Factory是一个高效、易用的大模型微调框架，集成了多种微调方法和模型支持。在CloudStudio上搭建环境的步骤如下： 首先创建实验所需的虚拟环境：   然后从GitHub拉取LLaMA-Factory仓库，安装环境依赖：   最后运行llamafactory-cli version进行验证。若显示当前LLaMA-Fa">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DIY微调一个微信分身">
+<meta property="og:url" content="https://worlds3.github.io/2026/01/16/DIY%E5%BE%AE%E8%B0%83%E4%B8%80%E4%B8%AA%E5%BE%AE%E4%BF%A1%E5%88%86%E8%BA%AB/index.html">
+<meta property="og:site_name" content="5ha的个人空间">
+<meta property="og:description" content="LLM微调Demo项目1.LLama-Factory环境的搭建LLaMA-Factory是一个高效、易用的大模型微调框架，集成了多种微调方法和模型支持。在CloudStudio上搭建环境的步骤如下： 首先创建实验所需的虚拟环境：   然后从GitHub拉取LLaMA-Factory仓库，安装环境依赖：   最后运行llamafactory-cli version进行验证。若显示当前LLaMA-Fa">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://worlds3.github.io/2026/01/16/DIY%E5%BE%AE%E8%B0%83%E4%B8%80%E4%B8%AA%E5%BE%AE%E4%BF%A1%E5%88%86%E8%BA%AB/%E5%9B%BE%E7%89%8712.png">
+<meta property="article:published_time" content="2026-01-16T13:13:55.000Z">
+<meta property="article:modified_time" content="2026-01-16T13:17:34.500Z">
+<meta property="article:author" content="5ha">
+<meta property="article:tag" content="大模型">
+<meta property="article:tag" content="LLamaFactory">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://worlds3.github.io/2026/01/16/DIY%E5%BE%AE%E8%B0%83%E4%B8%80%E4%B8%AA%E5%BE%AE%E4%BF%A1%E5%88%86%E8%BA%AB/%E5%9B%BE%E7%89%8712.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "DIY微调一个微信分身",
+  "url": "https://worlds3.github.io/2026/01/16/DIY%E5%BE%AE%E8%B0%83%E4%B8%80%E4%B8%AA%E5%BE%AE%E4%BF%A1%E5%88%86%E8%BA%AB/",
+  "image": "https://worlds3.github.io/2026/01/16/DIY%E5%BE%AE%E8%B0%83%E4%B8%80%E4%B8%AA%E5%BE%AE%E4%BF%A1%E5%88%86%E8%BA%AB/%E5%9B%BE%E7%89%8712.png",
+  "datePublished": "2026-01-16T13:13:55.000Z",
+  "dateModified": "2026-01-16T13:17:34.500Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "5ha",
+      "url": "https://worlds3.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/avatar.jpg"><link rel="canonical" href="https://worlds3.github.io/2026/01/16/DIY%E5%BE%AE%E8%B0%83%E4%B8%80%E4%B8%AA%E5%BE%AE%E4%BF%A1%E5%88%86%E8%BA%AB/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.2"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":300,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'medium_zoom',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.12.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'DIY微调一个微信分身',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">6</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">6</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于me</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/2026/01/16/DIY%E5%BE%AE%E8%B0%83%E4%B8%80%E4%B8%AA%E5%BE%AE%E4%BF%A1%E5%88%86%E8%BA%AB/%E5%9B%BE%E7%89%8712.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">5ha的个人空间</span></a><a class="nav-page-title" href="/"><span class="site-name">DIY微调一个微信分身</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于me</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">DIY微调一个微信分身</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-01-16T13:13:55.000Z" title="发表于 2026-01-16 21:13:55">2026-01-16</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-01-16T13:17:34.500Z" title="更新于 2026-01-16 21:17:34">2026-01-16</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%AD%A6%E4%B9%A0/">学习</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">2k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>6分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="LLM微调Demo项目"><a href="#LLM微调Demo项目" class="headerlink" title="LLM微调Demo项目"></a>LLM微调Demo项目</h1><h2 id="1-LLama-Factory环境的搭建"><a href="#1-LLama-Factory环境的搭建" class="headerlink" title="1.LLama-Factory环境的搭建"></a>1.LLama-Factory环境的搭建</h2><p>LLaMA-Factory是一个高效、易用的大模型微调框架，集成了多种微调方法和模型支持。在CloudStudio上搭建环境的步骤如下：</p>
+<p>首先创建实验所需的虚拟环境：</p>
+<p><img src="图片1.png" alt="img"> </p>
+<p>然后从GitHub拉取LLaMA-Factory仓库，安装环境依赖：</p>
+<p><img src="图片2.png" alt="img"> </p>
+<p>最后运行llamafactory-cli version进行验证。若显示当前LLaMA-Factory版本，则说明安装成功：</p>
+<p><img src="周报/DIY微调一个微信分身/图片3.png" alt="img"> </p>
+<h2 id="2-Lora微调原理"><a href="#2-Lora微调原理" class="headerlink" title="2.Lora微调原理"></a>2.Lora微调原理</h2><p>在第一周的YOLO项目中，我们对整个网络的参数进行端到端的训练；而在大模型微调领域，由于模型参数量动辄数十亿甚至千亿级别，全参数微调的计算成本和存储成本都极其高昂。LoRA（Low-Rank Adaptation）正是为解决这一问题而提出的高效微调方法。</p>
+<p>LoRA的核心思想源于一个重要假设：模型在适应特定任务时，权重的更新矩阵具有较低的”内在秩”（Intrinsic Rank）。基于这一假设，LoRA不直接修改预训练模型的原始权重W，而是将权重更新量ΔW分解为两个低秩矩阵的乘积：ΔW = BA，其中B∈R^(d×r)、A∈R^(r×k)，r远小于d和k。这样，原本需要训练d×k个参数的更新矩阵，现在只需训练(d+k)×r个参数，参数量大幅减少。</p>
+<p><img src="图片4.png" alt="img"> </p>
+<p>在前向传播时，LoRA的计算公式为：h = Wx + BAx，即在原始权重的输出基础上，叠加低秩适配器的输出。训练过程中，原始权重W保持冻结，只有A和B两个小矩阵参与梯度更新。这种设计带来了多重优势：一是训练参数量通常只有原模型的0.1%~1%，显著降低显存占用；二是可以为不同任务训练不同的LoRA适配器，推理时动态加载，实现”一个底座模型，多个任务适配器”的灵活部署；三是由于原始权重不变，不会出现灾难性遗忘问题，模型的通用能力得以保留。</p>
+<h2 id="3-QLora微调原理"><a href="#3-QLora微调原理" class="headerlink" title="3.QLora微调原理"></a>3.QLora微调原理</h2><p>如果说LoRA是在”训练什么”上做文章，那么QLoRA（Quantized LoRA）则进一步在”如何存储”上进行优化，是LoRA技术的进一步升级。QLoRA的核心创新在于将量化技术与LoRA相结合，使得在消费级显卡上微调大模型成为可能。</p>
+<p><img src="图片5.png" alt="img"> </p>
+<p>QLoRA引入了三项关键技术：第一是4-bit NormalFloat（NF4）量化。传统的4-bit量化对于服从正态分布的神经网络权重并不友好，而NF4专门针对正态分布设计量化区间，理论上是信息最优的4-bit数据类型。第二是双重量化（Double Quantization），即对量化常数本身再进行一次量化，进一步节省存储空间，平均每个参数可额外节省约0.37bit。第三是分页优化器（Paged Optimizers），利用NVIDIA统一内存特性，在GPU显存不足时自动将优化器状态卸载到CPU内存，避免OOM错误。</p>
+<p>在训练流程上，QLoRA首先将预训练模型量化为4-bit精度并冻结，然后在其上添加可训练的LoRA适配器（以BF16精度训练）。前向传播时，4-bit权重被反量化为BF16进行计算；反向传播时，只有LoRA参数接收梯度更新。通过这种方式，QLoRA可以在单张24GB显存的RTX 3090/4090上微调65B参数的模型，极大地降低了大模型微调的硬件门槛。</p>
+<h2 id="4-使用个人微信聊天记录微调Qwen2-5-1-5B-Instruct"><a href="#4-使用个人微信聊天记录微调Qwen2-5-1-5B-Instruct" class="headerlink" title="4.使用个人微信聊天记录微调Qwen2.5-1.5B-Instruct"></a>4.使用个人微信聊天记录微调Qwen2.5-1.5B-Instruct</h2><p>本次实习项目选择大模型微调实战方向，目标是基于个人微信聊天记录，微调一个能够模仿本人对话风格的对话模型。但由于微信平台的风控策略，其实做起来遇到不少麻烦。</p>
+<h3 id="（1）数据来源"><a href="#（1）数据来源" class="headerlink" title="（1）数据来源"></a>（1）数据来源</h3><p>在做这个数据集时，必须要考虑到“<strong><em>\</em>即使是同一个人，在不同情景下的说话风格也会有差异**</strong>”对于老师我的语气可能就比较尊敬， 对于一般的朋友会是那种比较客气，基本不说卧槽这种脏话，对于很铁的朋友就可能说话比较随意，对于父母可能就又装回乖乖小孩了。如果将这些对话混在一起训练，风格冲突会导致模型”精神分裂”，因为数据本身互相矛盾。所以在此次实习项目中呢，我暂时只使用和死党、铁哥们的对话记录。这部分数据最真实、最放松、最不像 AI，也最能体现我的“灵魂”。</p>
+<p>另外，微信记录可以分为私聊和群聊。在群聊中切分出关于自己的连续对话太复杂，暂时不考虑。这里我挑选 3-5 个和我关系最好的朋友，把这几个人的聊天记录合在一起。</p>
+<h3 id="（2）数据处理"><a href="#（2）数据处理" class="headerlink" title="（2）数据处理"></a>（2）数据处理</h3><p>借助开源工具MemoTrace进行数据导出。由于一些不可抗拒因素，此工具现在github开源地址已经被停用，我在某个博客所给出的网盘链接里找到了旧版的MemoTrace，由于该工具对微信版本有特定要求，需要将微信降级至3.9版本才能正常使用。</p>
+<p>在导出时过滤掉图片、表情包、语音等非文本消息，仅选择了文本和颜文字（这是我个人的说话风格）；然后将连续的对话按照时间窗口（10分钟内）组织成多轮对话，导出为json格式；接着人工简单清洗很明显断片的对话；最后写了一个脚本转换为LLaMA-Factory所需的sharegpt格式。处理后的数据样例如下：</p>
+<p><img src="图片6.png" alt="img"> </p>
+<h3 id="（3）注册到dataset-info"><a href="#（3）注册到dataset-info" class="headerlink" title="（3）注册到dataset_info"></a>（3）注册到dataset_info</h3><p>LLaMA-Factory通过data/dataset_info.json文件管理所有数据集。将处理好的数据集放置在data目录下后，在该文件中添加相应的注册信息即可：</p>
+<p><img src="图片7.png" alt="img"> </p>
+<h3 id="（4）下载模型"><a href="#（4）下载模型" class="headerlink" title="（4）下载模型"></a>（4）下载模型</h3><p>由于Hugging Face在国内访问不稳定，本次实验选择从ModelScope下载Qwen2.5-1.5B-Instruct模型。编写下载脚本，指定模型名称和本地保存路径即可自动完成下载。</p>
+<p><img src="图片8.png" alt="img"> </p>
+<h3 id="（5）配置训练参数yaml进行训练"><a href="#（5）配置训练参数yaml进行训练" class="headerlink" title="（5）配置训练参数yaml进行训练"></a>（5）配置训练参数yaml进行训练</h3><p>直接复制LLaMA-Factory/examples/train_qlora/下的训练参数，稍微进行调整。</p>
+<p><img src="图片9.png" alt="img"> </p>
+<p>为了更加充分的训练，我把lora的rank设置微大，在template.py中增加更符合当前微调任务的system prompt，同时在训练参数中使用这个模板。</p>
+<p><img src="图片10.png" alt="img"> </p>
+<p>配置完成后，直接使用以下命令启动训练。</p>
+<p><img src="图片11.png" alt="img"> </p>
+<h2 id="5-搭建Web-UI"><a href="#5-搭建Web-UI" class="headerlink" title="5.搭建Web UI"></a>5.搭建Web UI</h2><p>为了让微调后的模型能够便捷地进行交互测试，使用FastAPI框架搭建了一个简洁的Web对话界面。相比于复杂的前端框架，FastAPI结合Jinja2模板引擎能够快速实现一个功能完整的聊天界面。</p>
+<h3 id="（1）后端API开发"><a href="#（1）后端API开发" class="headerlink" title="（1）后端API开发"></a>（1）后端API开发</h3><p>后端基于FastAPI框架构建，主要包含模型加载、对话生成和接口路由三个核心模块。在服务启动时，加载微调后的LoRA权重与基座模型进行合并，并初始化tokenizer。对话接口接收用户输入后，拼接system prompt和历史对话，调用模型生成回复。</p>
+<h3 id="（2）前端页面设计"><a href="#（2）前端页面设计" class="headerlink" title="（2）前端页面设计"></a>（2）前端页面设计</h3><p>前端采用简洁的HTML页面配合JavaScript实现异步交互，模拟常见的聊天界面布局。用户消息显示在右侧，模型回复显示在左侧，支持多轮对话历史的维护。</p>
+<h3 id="（3）运行效果"><a href="#（3）运行效果" class="headerlink" title="（3）运行效果"></a>（3）运行效果</h3><p>启动服务后，在浏览器中访问<a href="http://localhost:8000即可进入对话界面。经过测试，微调后的模型能够较好地模仿训练数据中的对话风格，回复自然随意，偶尔会使用颜文字表情，与日常微信聊天的语气较为接近。相比于原始的Qwen2.5-1.5B-Instruct模型那种正式、官方的回复风格，微调后的模型明显更具&quot;人味&quot;。">http://localhost:8000即可进入对话界面。经过测试，微调后的模型能够较好地模仿训练数据中的对话风格，回复自然随意，偶尔会使用颜文字表情，与日常微信聊天的语气较为接近。相比于原始的Qwen2.5-1.5B-Instruct模型那种正式、官方的回复风格，微调后的模型明显更具&quot;人味&quot;。</a></p>
+<p><img src="图片12.png" alt="img"> </p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://worlds3.github.io">5ha</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://worlds3.github.io/2026/01/16/DIY%E5%BE%AE%E8%B0%83%E4%B8%80%E4%B8%AA%E5%BE%AE%E4%BF%A1%E5%88%86%E8%BA%AB/">https://worlds3.github.io/2026/01/16/DIY%E5%BE%AE%E8%B0%83%E4%B8%80%E4%B8%AA%E5%BE%AE%E4%BF%A1%E5%88%86%E8%BA%AB/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://worlds3.github.io" target="_blank">5ha的个人空间</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/">大模型</a><a class="post-meta__tags" href="/tags/LLamaFactory/">LLamaFactory</a></div><div class="post-share"><div class="social-share" data-image="/2026/01/16/DIY%E5%BE%AE%E8%B0%83%E4%B8%80%E4%B8%AA%E5%BE%AE%E4%BF%A1%E5%88%86%E8%BA%AB/%E5%9B%BE%E7%89%8712.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2025/12/30/CPT-SFT-DPO%E5%AE%9E%E6%88%98/" title="CPT-SFT-DPO实战"><img class="cover" src="/2025/12/30/CPT-SFT-DPO%E5%AE%9E%E6%88%98/cover.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">CPT-SFT-DPO实战</div></div><div class="info-2"><div class="info-item-1">LLaMA-Factory 实战指南：从 CPT 到 DPO 全流程详解一、LLM 训练框架概览1.1 框架总结在开始实战前，需要明确工具定位。目前的 LLM 训练框架可以类比 CV 领域分为三个层级：     层级 CV 领域类比 LLM 领域对应 特点 典型行为     L1: 底层 PyTorch/TensorFlow搭建 ResNet/CNN Transformers, PEFT（微调）, Accelerate（分布式、训练加速），DeepSpeed（分布式、训练加速）, bitsandbytes（量化）, TRL（DPO，PPO等强化学习），vLLM（推理加速），Torchtune（pytorch维护的一个llm库） 灵活开发 class MyModel(nn.Module): ...  手写 Training Loop   L2: 中间层 YOLO, MMDetection Axolotl，SWIFT（主要支持modelscope)，PaddleNLP， Unsloth 配置驱动、高效、工业级 修改 config.yaml  运行 axolotl train conf...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2025/12/30/CPT-SFT-DPO%E5%AE%9E%E6%88%98/" title="CPT-SFT-DPO实战"><img class="cover" src="/2025/12/30/CPT-SFT-DPO%E5%AE%9E%E6%88%98/cover.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-12-30</div><div class="info-item-2">CPT-SFT-DPO实战</div></div><div class="info-2"><div class="info-item-1">LLaMA-Factory 实战指南：从 CPT 到 DPO 全流程详解一、LLM 训练框架概览1.1 框架总结在开始实战前，需要明确工具定位。目前的 LLM 训练框架可以类比 CV 领域分为三个层级：     层级 CV 领域类比 LLM 领域对应 特点 典型行为     L1: 底层 PyTorch/TensorFlow搭建 ResNet/CNN Transformers, PEFT（微调）, Accelerate（分布式、训练加速），DeepSpeed（分布式、训练加速）, bitsandbytes（量化）, TRL（DPO，PPO等强化学习），vLLM（推理加速），Torchtune（pytorch维护的一个llm库） 灵活开发 class MyModel(nn.Module): ...  手写 Training Loop   L2: 中间层 YOLO, MMDetection Axolotl，SWIFT（主要支持modelscope)，PaddleNLP， Unsloth 配置驱动、高效、工业级 修改 config.yaml  运行 axolotl train conf...</div></div></div></a><a class="pagination-related" href="/2025/11/18/LLM%E5%BE%AE%E8%B0%83%E7%90%86%E8%AE%BA%E6%95%B4%E7%90%86/" title="LLM微调理论整理"><img class="cover" src="/2025/11/18/LLM%E5%BE%AE%E8%B0%83%E7%90%86%E8%AE%BA%E6%95%B4%E7%90%86/image-20251017134429782.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-11-18</div><div class="info-item-2">LLM微调理论整理</div></div><div class="info-2"><div class="info-item-1">大模型训练与微调 大语言模型（LLM）的成长过程，大体可以分为三个阶段：     阶段 目标 学习方式 类比     预训练（Pretraining） 学习语言规律和知识 自监督学习 小孩学习基础语法   监督微调（SFT） 学会听懂“人类指令” 指令-回答对 老师手把手教你回答问题   对齐训练（RLHF） 学会“说得合适” 人类偏好反馈 学会在社交中说话得体      🧩 简单来理解：预训练让模型“有知识”；微调让模型“能沟通”；对齐让模型“合人意”。  一、预训练1.1 什么是预训练？1.1.1 背景与概念在大语言模型（LLM, Large Language Model）中，预训练（Pre-training） 是整个模型训练流程的第一阶段，也是最关键的一步。它的目标是让模型在大规模、无标注的文本数据上，通过自监督学习（Self-supervised Learning）的方式，掌握语言的基础规律和世界常识。这些数据通常来源于互联网网页、新闻、百科、书籍、社交媒体文本、论文等，从而使模型具备理解自然语言、生成自然语言的通用能力。 1.1.2 类比理解可以把预训练后的模型比作刚...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="lv-container" data-id="city" data-uid="MTAyMC82MTA0Ny8zNzUxNw=="></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">5ha</div><div class="author-info-description">得之坦然，失之淡然</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">6</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">6</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/worlds3"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/worlds3" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:vmerluckycat5@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎光临我的博客！UESTC研0，热爱AI，不定期更新学习/科研/生活等等。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#LLM%E5%BE%AE%E8%B0%83Demo%E9%A1%B9%E7%9B%AE"><span class="toc-text">LLM微调Demo项目</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-LLama-Factory%E7%8E%AF%E5%A2%83%E7%9A%84%E6%90%AD%E5%BB%BA"><span class="toc-text">1.LLama-Factory环境的搭建</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-Lora%E5%BE%AE%E8%B0%83%E5%8E%9F%E7%90%86"><span class="toc-text">2.Lora微调原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-QLora%E5%BE%AE%E8%B0%83%E5%8E%9F%E7%90%86"><span class="toc-text">3.QLora微调原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E4%BD%BF%E7%94%A8%E4%B8%AA%E4%BA%BA%E5%BE%AE%E4%BF%A1%E8%81%8A%E5%A4%A9%E8%AE%B0%E5%BD%95%E5%BE%AE%E8%B0%83Qwen2-5-1-5B-Instruct"><span class="toc-text">4.使用个人微信聊天记录微调Qwen2.5-1.5B-Instruct</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%881%EF%BC%89%E6%95%B0%E6%8D%AE%E6%9D%A5%E6%BA%90"><span class="toc-text">（1）数据来源</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%882%EF%BC%89%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86"><span class="toc-text">（2）数据处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%883%EF%BC%89%E6%B3%A8%E5%86%8C%E5%88%B0dataset-info"><span class="toc-text">（3）注册到dataset_info</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%884%EF%BC%89%E4%B8%8B%E8%BD%BD%E6%A8%A1%E5%9E%8B"><span class="toc-text">（4）下载模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%885%EF%BC%89%E9%85%8D%E7%BD%AE%E8%AE%AD%E7%BB%83%E5%8F%82%E6%95%B0yaml%E8%BF%9B%E8%A1%8C%E8%AE%AD%E7%BB%83"><span class="toc-text">（5）配置训练参数yaml进行训练</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%90%AD%E5%BB%BAWeb-UI"><span class="toc-text">5.搭建Web UI</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%881%EF%BC%89%E5%90%8E%E7%AB%AFAPI%E5%BC%80%E5%8F%91"><span class="toc-text">（1）后端API开发</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%882%EF%BC%89%E5%89%8D%E7%AB%AF%E9%A1%B5%E9%9D%A2%E8%AE%BE%E8%AE%A1"><span class="toc-text">（2）前端页面设计</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%EF%BC%883%EF%BC%89%E8%BF%90%E8%A1%8C%E6%95%88%E6%9E%9C"><span class="toc-text">（3）运行效果</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/01/16/DIY%E5%BE%AE%E8%B0%83%E4%B8%80%E4%B8%AA%E5%BE%AE%E4%BF%A1%E5%88%86%E8%BA%AB/" title="DIY微调一个微信分身"><img src="/2026/01/16/DIY%E5%BE%AE%E8%B0%83%E4%B8%80%E4%B8%AA%E5%BE%AE%E4%BF%A1%E5%88%86%E8%BA%AB/%E5%9B%BE%E7%89%8712.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="DIY微调一个微信分身"/></a><div class="content"><a class="title" href="/2026/01/16/DIY%E5%BE%AE%E8%B0%83%E4%B8%80%E4%B8%AA%E5%BE%AE%E4%BF%A1%E5%88%86%E8%BA%AB/" title="DIY微调一个微信分身">DIY微调一个微信分身</a><time datetime="2026-01-16T13:13:55.000Z" title="发表于 2026-01-16 21:13:55">2026-01-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/12/30/CPT-SFT-DPO%E5%AE%9E%E6%88%98/" title="CPT-SFT-DPO实战"><img src="/2025/12/30/CPT-SFT-DPO%E5%AE%9E%E6%88%98/cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="CPT-SFT-DPO实战"/></a><div class="content"><a class="title" href="/2025/12/30/CPT-SFT-DPO%E5%AE%9E%E6%88%98/" title="CPT-SFT-DPO实战">CPT-SFT-DPO实战</a><time datetime="2025-12-30T12:50:36.000Z" title="发表于 2025-12-30 20:50:36">2025-12-30</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/12/29/Pyinstaller%E6%89%93%E5%8C%85YOLOv11%E5%92%8CPyQt5%E9%A1%B9%E7%9B%AE%E4%B8%BAexe%E6%96%87%E4%BB%B6/" title="Pyinstaller打包YOLOv11和PyQt5项目为exe文件">Pyinstaller打包YOLOv11和PyQt5项目为exe文件</a><time datetime="2025-12-29T03:40:05.000Z" title="发表于 2025-12-29 11:40:05">2025-12-29</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/12/28/YOLO%E5%BC%95%E5%85%A5%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%A8%A1%E5%9D%97/" title="YOLO引入注意力模块"><img src="/2025/12/28/YOLO%E5%BC%95%E5%85%A5%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%A8%A1%E5%9D%97/cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="YOLO引入注意力模块"/></a><div class="content"><a class="title" href="/2025/12/28/YOLO%E5%BC%95%E5%85%A5%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%A8%A1%E5%9D%97/" title="YOLO引入注意力模块">YOLO引入注意力模块</a><time datetime="2025-12-28T14:32:50.000Z" title="发表于 2025-12-28 22:32:50">2025-12-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/11/18/LLM%E5%BE%AE%E8%B0%83%E7%90%86%E8%AE%BA%E6%95%B4%E7%90%86/" title="LLM微调理论整理"><img src="/2025/11/18/LLM%E5%BE%AE%E8%B0%83%E7%90%86%E8%AE%BA%E6%95%B4%E7%90%86/image-20251017134429782.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="LLM微调理论整理"/></a><div class="content"><a class="title" href="/2025/11/18/LLM%E5%BE%AE%E8%B0%83%E7%90%86%E8%AE%BA%E6%95%B4%E7%90%86/" title="LLM微调理论整理">LLM微调理论整理</a><time datetime="2025-11-17T16:13:40.000Z" title="发表于 2025-11-18 00:13:40">2025-11-18</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(/2026/01/16/DIY%E5%BE%AE%E8%B0%83%E4%B8%80%E4%B8%AA%E5%BE%AE%E4%BF%A1%E5%88%86%E8%BA%AB/%E5%9B%BE%E7%89%8712.png);"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 5ha</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.2</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.2"></script><script src="/js/main.js?v=5.5.2"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.0.0/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+
+  const loadLivere = (el, path) => {
+    window.livereOptions = {
+      refer: path || location.pathname
+    }
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyLivere = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    if (typeof LivereTower === 'object') window.LivereTower.init()
+    else {
+      (function(d, s) {
+          var j, e = d.getElementsByTagName(s)[0];
+          if (typeof LivereTower === 'function') { return; }
+          j = d.createElement(s);
+          j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+          j.async = true;
+          e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    }
+  }
+
+  if (isShuoshuo) {
+    'Livere' === 'Livere'
+      ? window.shuoshuoComment = { loadComment: loadLivere }
+      : window.loadOtherComment = loadLivere
+    return
+  }
+
+  if ('Livere' === 'Livere' || !false) {
+    if (false) btf.loadComment(document.getElementById('lv-container'), loadLivere)
+    else loadLivere()
+  } else {
+    window.loadOtherComment = loadLivere
+  }
+})()</script></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-ribbon.min.js" size="230" alpha="0.6" zIndex="-1" mobile="false" data-click="false"></script><script async data-pjax src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.2"></script></div></div></body></html>
