@@ -1,0 +1,422 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>经典CNN梳理 | 5ha的个人空间</title><meta name="author" content="5ha"><meta name="copyright" content="5ha"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="一、前置基础：​    深度学习这块，改来改去就是数据和model在改，数据进行一些处理后放进原模型中效果更好则就是idea，或者数据不动，改动模型的一些小结构效果更好又是一个idea ​    从cifar10分类任务引入卷积神经网络，首先回顾一下卷积神经网络中一些基础的概念。 1.1 感受野：​    是指在输入图像上，某层的一个神经元能看到或相应区域大小，换句话说就是在网络最初输入上看到的像">
+<meta property="og:type" content="article">
+<meta property="og:title" content="经典CNN梳理">
+<meta property="og:url" content="https://worlds3.github.io/2024/08/01/%E7%BB%8F%E5%85%B8CNN%E6%A2%B3%E7%90%86/index.html">
+<meta property="og:site_name" content="5ha的个人空间">
+<meta property="og:description" content="一、前置基础：​    深度学习这块，改来改去就是数据和model在改，数据进行一些处理后放进原模型中效果更好则就是idea，或者数据不动，改动模型的一些小结构效果更好又是一个idea ​    从cifar10分类任务引入卷积神经网络，首先回顾一下卷积神经网络中一些基础的概念。 1.1 感受野：​    是指在输入图像上，某层的一个神经元能看到或相应区域大小，换句话说就是在网络最初输入上看到的像">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://worlds3.github.io/2024/08/01/%E7%BB%8F%E5%85%B8CNN%E6%A2%B3%E7%90%86/image-20240810212320312.png">
+<meta property="article:published_time" content="2024-08-01T02:35:11.000Z">
+<meta property="article:modified_time" content="2026-01-27T02:53:32.524Z">
+<meta property="article:author" content="5ha">
+<meta property="article:tag" content="CNN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://worlds3.github.io/2024/08/01/%E7%BB%8F%E5%85%B8CNN%E6%A2%B3%E7%90%86/image-20240810212320312.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "经典CNN梳理",
+  "url": "https://worlds3.github.io/2024/08/01/%E7%BB%8F%E5%85%B8CNN%E6%A2%B3%E7%90%86/",
+  "image": "https://worlds3.github.io/2024/08/01/%E7%BB%8F%E5%85%B8CNN%E6%A2%B3%E7%90%86/image-20240810212320312.png",
+  "datePublished": "2024-08-01T02:35:11.000Z",
+  "dateModified": "2026-01-27T02:53:32.524Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "5ha",
+      "url": "https://worlds3.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/avatar.jpg"><link rel="canonical" href="https://worlds3.github.io/2024/08/01/%E7%BB%8F%E5%85%B8CNN%E6%A2%B3%E7%90%86/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.2"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":300,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'medium_zoom',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.12.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '经典CNN梳理',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">7</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">6</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于me</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/2024/08/01/%E7%BB%8F%E5%85%B8CNN%E6%A2%B3%E7%90%86/image-20240810212320312.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">5ha的个人空间</span></a><a class="nav-page-title" href="/"><span class="site-name">经典CNN梳理</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于me</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">经典CNN梳理</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-08-01T02:35:11.000Z" title="发表于 2024-08-01 10:35:11">2024-08-01</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-01-27T02:53:32.524Z" title="更新于 2026-01-27 10:53:32">2026-01-27</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%AD%A6%E4%B9%A0/">学习</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">6.9k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>21分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="一、前置基础："><a href="#一、前置基础：" class="headerlink" title="一、前置基础："></a>一、前置基础：</h2><p>​    深度学习这块，改来改去就是数据和model在改，数据进行一些处理后放进原模型中效果更好则就是idea，或者数据不动，改动模型的一些小结构效果更好又是一个idea</p>
+<p>​    从cifar10分类任务引入卷积神经网络，首先回顾一下卷积神经网络中一些基础的概念。</p>
+<h3 id="1-1-感受野："><a href="#1-1-感受野：" class="headerlink" title="1.1 感受野："></a>1.1 感受野：</h3><p>​    是指在输入图像上，某层的一个神经元能看到或相应区域大小，换句话说就是在网络最初输入上看到的像素大小。</p>
+<h3 id="1-2-作用："><a href="#1-2-作用：" class="headerlink" title="1.2 作用："></a>1.2 作用：</h3><p>​    感受野越大，在输入层上看到的区域就越大，可以捕捉到更多的全局特征，也就进而会影响到卷积层或者整个网络的设计架构。</p>
+<h3 id="1-3-卷积层-Convolutional-Layer-："><a href="#1-3-卷积层-Convolutional-Layer-：" class="headerlink" title="1.3 卷积层(Convolutional Layer)："></a>1.3 卷积层(Convolutional Layer)：</h3><h4 id="卷积到底起到什么作用："><a href="#卷积到底起到什么作用：" class="headerlink" title="卷积到底起到什么作用："></a><strong>卷积到底起到什么作用：</strong></h4><p>​    卷积操作就是用一个可移动的小窗口来<strong>提取图像中的特征</strong>，这个操作可以捕捉到<strong>图像中的局部特征</strong>而<strong>不受其位置的影响</strong></p>
+<p>​    但，更清楚的说明是理解为用一个更小的窗口(特征)，或者说我我们需要的结果这个作为过滤器，挨个滑动去匹配，滑动的每个位置都会计算出一个值，最终匹配程度最高的地方计算出的置同样也会最高，这样也就提取出特征了，而不会受到位置的影响</p>
+<p>​    所以，我觉得就能理解为什么卷积核的英文名是filter，过滤器；再举个我觉得比较生动的例子，现在去</p>
+<p><img src="image-20240810155153752.png" alt="image-20240810155153752"></p>
+<p>​    <strong>卷积核</strong>：每个卷积核在图像上滑动并进行卷积操作，<strong>提取局部特征</strong>(减少对位置的敏感性)</p>
+<p>​    <strong>输出通道</strong>：由于每个卷积核在图像上滑动后都会产生一个输出通道，所以卷积层</p>
+<p>​    <strong>输出通道个数和卷积核的个数相同</strong>，所以得到结论是：往往进行卷积希望<strong>通道数变多</strong>，但是值得注意：<strong>一个feature map和一个卷积核进行卷积的前提是他们的通道数相同</strong>，就是说一个feature map 为c个通道，则卷积核的通道数也是c个通道，和这个卷积核就能输出单通道的feature map， 如果有k个这样的卷积核，输出来的就是k通道的feature map</p>
+<h3 id="1-4-池化层-Pooling-Layer-："><a href="#1-4-池化层-Pooling-Layer-：" class="headerlink" title="1.4 池化层(Pooling Layer)："></a>1.4 池化层(Pooling Layer)：</h3><p>​    池化就是下采样的作用，即<strong>保持特征同时将输入空间维度减小</strong>的功能</p>
+<h4 id="最大池化："><a href="#最大池化：" class="headerlink" title="最大池化："></a>最大池化：</h4><p>​    可以获取<strong>局部信息</strong>，更好的保留纹理上的特征，如果不关心物体在图片上出现的位置，只关心是否出现，则用最大池化更好</p>
+<h4 id="平均池化："><a href="#平均池化：" class="headerlink" title="平均池化："></a>平均池化：</h4><p>​    平均池化能够<strong>保留整体数据的特征</strong>，突出背景信息，也就是说当背景信息都对特征有一点贡献的时候，优先考虑平均池化</p>
+<p>​    <strong>池化—&gt;特征图变小：</strong>池化不改变通道个数，输入通道和输出通道个数相同</p>
+<h4 id="全局池化："><a href="#全局池化：" class="headerlink" title="全局池化："></a>全局池化：</h4><p>​    全局池化其实就是池化的窗口和特征图大小相同，即CxHxW，所以经过这一层池化后就是Cx1x1的特征图，再形象一点就是把一个WxH的特征图，每个位置权重都为1/(WxH)的FC层输出一个点</p>
+<h4 id="CNN对比DNN："><a href="#CNN对比DNN：" class="headerlink" title="CNN对比DNN："></a>CNN对比DNN：</h4><p>​    相同点：都是使用反向传播算法</p>
+<p>​    不同点：网络结构不同，卷积神经网络存在局部连接(这层节点与上一层部分节点连接)和参数共享(指多个节点连接一组相同的参数)</p>
+<p>​    CNN参数更少，但是会有更多的乘法，在GPU上跑的更快</p>
+<h2 id="二、LeNet5"><a href="#二、LeNet5" class="headerlink" title="二、LeNet5:"></a>二、LeNet5:</h2><h3 id="2-1-网络结构："><a href="#2-1-网络结构：" class="headerlink" title="2.1 网络结构："></a>2.1 网络结构：</h3><p>​    网上好多的细节不一样，比如有的输入是28X28的灰度图，所以给了padding=2,我这个版本是原论文中的输入32X32的灰度图，所有的padding都是0，但其实就是一个就计算的小差别，经过这一个卷积层都是28X28X6的特征图；</p>
+<p>​    <strong>输入：</strong>32 X 32的灰度图像，通道数为1</p>
+<p>​    <strong>Conv1</strong>：5 X 5 X 1(通道数) 的卷积核共6个，stride=1，padding=0，所以经过这层后的特征图通道数是6层，尺寸为28X28, 计算公式如下：</p>
+<script type="math/tex; mode=display">
+OH=\frac{H+2P-FH}{Stride} + 1</script><p><img src="https://miro.medium.com/v2/resize:fit:1400/1*DMcPgeekUftwk0GTMcNawg.png" alt="Types of Convolutional Neural Networks: LeNet, AlexNet, VGG-16 Net ..."></p>
+<p>​    </p>
+<p>​    <strong>pooling1:</strong> 图中的f表示滑动窗口的尺寸，即这个kenel大小是2X2的，池化不改变通道数，按照公式计算得到下一层为14X14X6(通道数)的特征图</p>
+<p>​    <strong>Conv2</strong>：按道理来说应该是16个5X5X6(<strong>通道数必须和输入一致</strong>)的卷积核计算得出10X10X16(再次看到<strong>输出的通道数和卷积核的个数相同)</strong> 的特征图，但原论文中说并不是每个卷积核都和前一层的6个通道都做卷积，而是采用部分的方式如：前六个特征图从上层中三个特征图的每个连续子集中获取输入，也就是说这6个卷积核的 大小是5X5X3(通道数)</p>
+<p>​    <strong>pooling2</strong>：按照公式继续计算，只改变空间维度的大小，不会改变通道数，所以最后的结果是5X5X16的特征图</p>
+<p>​    <strong>Conv3：</strong>最后一层卷积层是120个卷积核大小为5X5X16(必须和输入通道数相同)，每个卷积核卷积后的结果都是1X1的特征图，所以总共输出120个通道的特征图，从这里也能看到最后一层卷积其实是<strong>展平操作</strong></p>
+<p>​    <strong>Linear1:</strong>120 X84的全连接层</p>
+<p>​    <strong>Linear2: </strong>84  X 10的全连接层，也就是输出了</p>
+<p><img src="image-20240805180737093.png" alt="image-20240805180737093"></p>
+<p>​    其实LeNet-5表示的有<strong>5个学习参数的层</strong></p>
+<p>​    这个网络中的池化都全是<strong>平均池化</strong>，以及每层卷积后都跟有一个非线性激活(除开输出层是softmax其他的都是tanh)</p>
+<p>​    原论文中写的是三个卷积层和两个全连接层，而有些说法是两个卷积层三个全连接层，其实就是展平操作原论文中使用的是卷积操作；</p>
+<p>​    网络可训练的参数量达到<strong>6万</strong></p>
+<h3 id="2-2-代码细节："><a href="#2-2-代码细节：" class="headerlink" title="2.2 代码细节："></a>2.2 代码细节：</h3><p><strong>计算准确率两种写法：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># 方式一：</span><br><span class="line"># argmax中的1表示在第二个维度上，返回按行找最大值的索引</span><br><span class="line">acc_cnt += (outputs.argmax(1) == targets).sum()</span><br><span class="line"># 方式二：</span><br><span class="line"># 在第1(索引是从0开始)个维度上,也就返回类别最大值及索引，只需要索引值</span><br><span class="line">_, predicts = torch.max(outputs.data, 1)</span><br><span class="line">acc_ cnt += (predicts == targets).sum()</span><br></pre></td></tr></table></figure>
+<p>​    比如一个三分类的问题，batch_size为4，则一次输出结果类似这种：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">tensor([[0.1, 0.8, 0.3],</span><br><span class="line">        [0.4, 0.2, 0.9],</span><br><span class="line">        [0.7, 0.5, 0.2],</span><br><span class="line">        [0.6, 0.2, 0.4]])</span><br></pre></td></tr></table></figure>
+<p>​    按照方式二，返回概率最大和对应的索引，即按行寻得结果：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(tensor([0.8, 0.9, 0.7, 0.6]), tensor([1, 2, 0, 0]))</span><br></pre></td></tr></table></figure>
+<p>​    返回的一个元组，第一个数是最大的概率，第二个数是对应的索引下标，也就代表了类别，所以只需要第二个值做判断</p>
+<p><strong>展平的方式：</strong></p>
+<p>​    感觉每个人的写法会有一些差异，有些人喜欢在网络层定义的时候就直接展平，有人喜欢在前向传播的过程中展平，这种方式有调用functional函数中Flatten的，也有使用view()来<strong>重塑形状</strong>的，view中给-1表示自动的调整，前提是元素总数不变</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">a1 = torch.arange(0, 16)</span><br><span class="line">print(a1) # tensor([ 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15])</span><br><span class="line">print(a1.view(-1, 8)) # tensor([[ 0,  1,  2,  3,  4,  5,  6,  7],</span><br><span class="line">        [ 8,  9, 10, 11, 12, 13, 14, 15]])</span><br></pre></td></tr></table></figure>
+<p><strong>统计每个批次的样本数量：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#x27;&#x27;&#x27;</span><br><span class="line">size用于专门获取大小，参数给的是dim即维度，比如一个张量为[batch_size, channels, height, width] 则size(0)取的batch_size的大小</span><br><span class="line">&#x27;&#x27;&#x27;</span><br><span class="line"># 比如这里直接取批次大小</span><br><span class="line">total += targets.size(0)</span><br></pre></td></tr></table></figure>
+<h3 id="2-3-犯错："><a href="#2-3-犯错：" class="headerlink" title="2.3 犯错："></a>2.3 犯错：</h3><p>​    卷积成一个1X1的4维张量和展开为一个2维的张量(其实也就是<strong>一维向量</strong>)，这完全是两码事情，看下面卷积为120维度的1X1的特征图之后依旧是4维张量([batch_size, 120, 1, 1]), 而全连接层全是2维张量([batch,  nums])，所以必须有展平的操作，<strong>其实展开就是把每一个像素都作为全连接层神经元的输入</strong>，比如([batch_size, 120, 5, 5])，<strong>展开后就是120x5x5的输入，即全连接层输入层的神经元个数为120x5x5</strong></p>
+<p><img src="image-20240806141147513.png" alt="image-20240806141147513"></p>
+<p>​    我看了别人很多代码，规范的是把卷积+激活函数作为一层去写的；另外在<strong>搭建网络的时候没有展开</strong>，直接在forward里面展开(不然就是我前面的问题，不展开无法与全连接层连接)然后继续接网络的前向传播。</p>
+<h2 id="三、AlexNet"><a href="#三、AlexNet" class="headerlink" title="三、AlexNet:"></a>三、AlexNet:</h2><h3 id="3-1-网络结构："><a href="#3-1-网络结构：" class="headerlink" title="3.1 网络结构："></a>3.1 网络结构：</h3><p><img src="image-20240806095600657.png" alt="image-20240806095600657"></p>
+<h3 id="3-2-改进点-相对LeNet5"><a href="#3-2-改进点-相对LeNet5" class="headerlink" title="3.2 改进点(相对LeNet5):"></a>3.2 改进点(相对LeNet5):</h3><p>​    图像增强：翻转、随机裁剪、PCA，主要是防止过拟合</p>
+<p>​    <strong>dropout操作</strong>，随机的使得一些神经元失活(不参与前向和反向传播的过程)，防止过拟合、加快训练</p>
+<p><img src="image-20240815150850736.png" alt="image-20240815150850736"></p>
+<p>​    <strong>Relu激活函数</strong>：更快的训练，且<strong>避免梯度消失和梯度爆炸</strong>(还可以合理初始化权重)</p>
+<p>​    <strong>LRN正则化(局部归一化)</strong>：对局部的值进行归一化操作，使其中较大的值变大更大，增强了局部的对比度</p>
+<p>​    重叠池化操作：使得PoolingSize&gt;stride，有一套说辞是重叠池化获得非重叠失去的特征，能够提升模型的精度等等，其实都是先做出来结果，然后讲故事</p>
+<h3 id="3-3-总结："><a href="#3-3-总结：" class="headerlink" title="3.3 总结："></a>3.3 总结：</h3><p>​    与LeNet有相同之处，也有很多区别；比如适用大尺寸的图像所以使用<strong>11X11这种大尺寸的卷积核</strong></p>
+<p>​    使用Relu激活函数，对比tanh/sigmoid激活函数，<strong>训练更快且避免梯度消失</strong></p>
+<p>​    dropout随机使得一些神经元失活防止过拟合(用在全连接层)</p>
+<p>​    LRN局部归一化：正则项，防止过拟合</p>
+<p><img src="image-20240806093103212.png" alt="image-20240806093103212"></p>
+<p>​    torchsummary专门用来网络可视化的，可以查看网络的结构，参数量，网络大小等等其实也就是用来检查自己搭的网络有没有问题，使用方法是:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">summary(model, input_size)</span><br><span class="line"># input_size还必须是元组，使用列表就会报错，，，，</span><br></pre></td></tr></table></figure>
+<h3 id="3-4-需注意的细节："><a href="#3-4-需注意的细节：" class="headerlink" title="3.4 需注意的细节："></a>3.4 需注意的细节：</h3><p>​    正因为使用drop操作，所以代码中<strong>必须</strong>添加训练模型的代码，反正使用pytorch框架是必须这样操作，我训练的准确率一直不动，我还纳闷为什么，所以为了规范以及避免再次这样的事情，<strong>要设置train和eval模式</strong></p>
+<p>​    dropout层只能在训练中使用，不能用于测试的过程</p>
+<p><img src="image-20240810112153770.png" alt="image-20240810112153770"></p>
+<p>​    我服，是我<strong>学习率设置的0.01太大了</strong>一直准确率在10%也就跟猜一模一样，我找各种原因，改成0.001就86%的准确率了</p>
+<p>​    损失曲线：一般来说都是记录一个epoch来画的，当然其他也可以，不过我一般就喜欢找最标准的整，但是因为这个本来没那么多标准的，网上敲的各式各样，都行</p>
+<h2 id="四、VGG16"><a href="#四、VGG16" class="headerlink" title="四、VGG16"></a>四、VGG16</h2><h3 id="4-1-网络结构："><a href="#4-1-网络结构：" class="headerlink" title="4.1 网络结构："></a>4.1 网络结构：</h3><p>​    vgg有很多系列比如vgg11和vgg19后面的数字表示参数层的个数    </p>
+<p>​    主要是使用了块的网络，可移植性强，虽然比赛输给了GoogleNet但是，它被更多的用于作为网络骨架的特征提取</p>
+<p><img src="8414ee8d2be1dc629331363a4cb087f1.png" alt="在这里插入图片描述"></p>
+<p>​    vgg16使用一个块来像搭积木一样搭建网络，<strong>全部使用3X3步幅和填充都为1的卷积核，池化采用2X2且步幅为2的核</strong>，一层就是一个块；</p>
+<p>​    在全连接层也用了dropout随机使得神经元失活，防止过拟合</p>
+<h3 id="4-2-两个3X3的卷积核代替一个5X5的卷积核："><a href="#4-2-两个3X3的卷积核代替一个5X5的卷积核：" class="headerlink" title="4.2 两个3X3的卷积核代替一个5X5的卷积核："></a>4.2 两个3X3的卷积核代替一个5X5的卷积核：</h3><p><img src="image-20240810212320312.png" alt="image-20240810212320312"></p>
+<p>​    比如对于下面这个5X5的特征图，用5X5的卷积核得到是一个点，而使用3<em>3的卷积核，首先第一个卷积核把下面的5X5变成一个3</em>3的，然后再一个3X3的卷积核直接变成一个点</p>
+<p>​    也就是说，<strong>感受野</strong>相同，但两个3<em>3的卷积核的更少，且小卷积核卷积<em>*整合了多个非线性激活层</em></em>，代替单一的非线性激活层，增加了判别能力</p>
+<h3 id="4-3-不收敛的原因："><a href="#4-3-不收敛的原因：" class="headerlink" title="4.3 不收敛的原因："></a>4.3 不收敛的原因：</h3><p>​    <strong>权重初始化</strong>有问题，就会出现梯度爆炸或者梯度消失的问题导致不收敛，初始化如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># 合理初始化权重，不然就是一轮下来没效果10%的准确率</span><br><span class="line"># 就离谱了，我加了这个准确率就上来了，不加就一直10%的准确率</span><br><span class="line">for m in self.modules():</span><br><span class="line">    if isinstance(m, nn.Conv2d):</span><br><span class="line">    	# 何凯明初始化！！</span><br><span class="line">        nn.init.kaiming_normal_(m.weight, nonlinearity=&#x27;relu&#x27;)</span><br><span class="line">        if m.bias is not None:</span><br><span class="line">            nn.init.constant_(m.bias, 0)</span><br><span class="line">    elif isinstance(m, nn.Linear):</span><br><span class="line">        nn.init.normal_(m.weight, 0, 0.01)</span><br><span class="line">        if m.bias is not None:</span><br><span class="line">            nn.init.constant_(m.bias, 0)</span><br></pre></td></tr></table></figure>
+<p>​    <strong>batchsize设置不合适</strong>(一般是太小的原因)也会导致不收敛的问题，因为不排除这样的情况：因为size太小，两个batch的差距有点大，两个batch更新的方向是相反的，会有抵消的情况</p>
+<p>​    <strong>学习率：</strong>看李沐老师的代码里面给的是0.05，然后补了一句这里的学习率比AlexNet大，我就以为是我学习率太小了(0.001)，所以训练一直不动的原因，但是我这次把学习率还是依旧设置的0.001(Adam)，添加了一个权重初始化并把batchsize放到64了，然后效果就好了，直接上90%的accuracy，我就很离谱，不懂这个怎么设置学习率调参。</p>
+<p>​    训练的步骤：<strong>先梯度清零—</strong>&gt;前向传播计算损失—&gt;反向传播—&gt;梯度更新</p>
+<p>调参难受：</p>
+<p>​    我好不容易加上凯明初始化权重+大batchsize，用学习率为0.001有90%的效果，但是学习率改为0.002就第一轮86%，后面全面accuracy=10%过拟合了，，，</p>
+<h2 id="五、NiN："><a href="#五、NiN：" class="headerlink" title="五、NiN："></a>五、NiN：</h2><h3 id="5-1-网络结构："><a href="#5-1-网络结构：" class="headerlink" title="5.1 网络结构："></a>5.1 网络结构：</h3><p><img src="image-20240820142121661.png" alt="image-20240820142121661"></p>
+<p>​    很明显NiN网络也是收到了Vgg块的影响，同样采用一个NiN块以搭积木的方式搭建网络。</p>
+<p>​    NiN块即三个卷积层放一起，后面两个都是1x1的卷积层(无填充，默认步幅，不改变尺寸和通道，也就相当于逐像素全连接层)，第一个卷积层就根据需求指定</p>
+<p>​    从最右边NiN的结构可以看到每个NiN块的第一层卷积的形状(11x11, 5x5, 3x 3)都和AlexNet相同，以及输出通道数96，256， 384也相同肯定是从中受到启发参考了一下，然后每个块后面接一个池化进行下采样。</p>
+<h3 id="5-2-创新点"><a href="#5-2-创新点" class="headerlink" title="5.2 创新点:"></a>5.2 创新点:</h3><p>​    <strong>取消了全连接层</strong>，因为使用全连接层可能会完全放弃特征的空间结构，<strong>让输出通道数和类别数相同</strong>，使用全局最大池化后的结果作为输出</p>
+<p>​    这样能够减少因为全连接层参数过多带来的过拟合，减少模型参数提升了模型的鲁棒性</p>
+<h3 id="5-3-细节："><a href="#5-3-细节：" class="headerlink" title="5.3 细节："></a>5.3 细节：</h3><p>​    同样使用了dropout操作防止过拟合，这里具体的作用是随机扔弃特征提取层的输出</p>
+<h2 id="六、GoogLeNet："><a href="#六、GoogLeNet：" class="headerlink" title="六、GoogLeNet："></a>六、GoogLeNet：</h2><h3 id="6-1-网络结构："><a href="#6-1-网络结构：" class="headerlink" title="6.1 网络结构："></a>6.1 网络结构：</h3><p><img src="image-20240811204129444.png" alt="image-20240811204129444"></p>
+<p>​    我简化了两个辅助分类器，因为感觉初学没有必要，这两个辅助分类器主要是用来因为链式求导，解决一下梯度消失的问题</p>
+<p>​    就很奇怪，googlenet中inception块之前的卷积这么算出来尺寸都是小数，然后<strong>向下取整</strong>才得到常用的图像尺寸，然后他这个inception模块设计的还是太巧妙了，模型看起来比vgg16复杂多了，但其实参数量比vgg16小一个量级的(跑起来快多了，爽死），当之无愧的冠军！！！</p>
+<h3 id="6-2-创新点："><a href="#6-2-创新点：" class="headerlink" title="6.2 创新点："></a>6.2 创新点：</h3><h4 id="多尺度卷积："><a href="#多尺度卷积：" class="headerlink" title="多尺度卷积："></a>多尺度卷积：</h4><p>​    就认为组合不同的大小卷积核，能够采集到更有效的特征什么的(<strong>多尺度卷积提取不同特征</strong>)，主要作用是：是挖掘了1 1卷积核的作用<strong>，减少了参数，提升了效果；</strong>二是让模型自己来决定用多大的的卷积核(1x1,3x3，5x5）就直接自己选的。</p>
+<h4 id="1X1的卷积核"><a href="#1X1的卷积核" class="headerlink" title="1X1的卷积核:"></a><strong>1X1的卷积核:</strong></h4><p>​    <strong>主要用来调整通道数，也就能减小网络参数</strong>：举个例子：输入为28X28X192，经过96个1X1X192的卷积核(s=1, p=0)输出为28X28X96的特征图，再经过128个3X3X96的卷积核(s = 1, p=1)输出为28X28X128的特征图，参数为1X1X192X96+3X3X96X128=129024，如果就是直接经过经过128个3X3X192的卷积核，参数为3X3X192X128=221184，所以就是主要用来减少网络参数，(如果这里不是96个X1X192的卷积核,而是10000个，参数也会上涨，所以看你怎么使用)</p>
+<h4 id="块的思想"><a href="#块的思想" class="headerlink" title="块的思想:"></a>块的思想:</h4><p>​    并行filter将输入特征提取并在通道上进行串联合并构成下一层的输入，然后inception块层层叠加，使用了<strong>9个inception块</strong>，inception块由四条并行的路径组成，四条路径都使用合适的填充使得<strong>输入和输出的高和宽一致</strong>(也就是分辨率一样)，通道数可能有所不同。</p>
+<p><img src="image-20240811203058136.png" alt="image-20240811203058136"></p>
+<h4 id="融合连接方式："><a href="#融合连接方式：" class="headerlink" title="融合连接方式："></a>融合连接方式：</h4><p>​    是把尺寸相同的<strong>的特征图的通道叠加连接，只需要保证尺寸相同(</strong>和后面的Resnet很不相同)</p>
+<h4 id="全局平均池化层-GAP"><a href="#全局平均池化层-GAP" class="headerlink" title="全局平均池化层(GAP):"></a>全局平均池化层(GAP):</h4><p>​    把一个<strong>特征图每个通道都平局池化为一个像素点</strong>，比如32X32X128的特征图直接全局平均池化为128的向量，优点是可以使得输入图像尺寸更加灵活(因为只看通道数)，以及<strong>防止过拟合</strong>(因为展开的向量小了很多很多)，缺点是很明显<strong>丢失了很多重要的信息</strong>(直接将那么大尺寸的一张图变成一个像素点)，以及可能有梯度消失和梯度爆炸</p>
+<p>pytorch框架里面<strong>最大池化层默认的stride和尺寸大小一样</strong>，而卷积层默认步长为1，这就很坑，如果你上面卷积层的步长为1，你默认不写，下面的池化层步长是1，你不写就遭殃咯，调死你！！！</p>
+<h3 id="6-3-细节："><a href="#6-3-细节：" class="headerlink" title="6.3 细节："></a>6.3 细节：</h3><p>​    pytorch框架里面<strong>最大池化层默认的stride和尺寸大小一样</strong>，而卷积层默认步长为1，这就很坑，如果你上面卷积层的步长为1，你默认不写，下面的池化层步长是1，你不写就遭殃咯，调死你！！！</p>
+<p>​    基本上是3分钟一轮，快很多</p>
+<p>​    学习率：开始是0.001(10%正确率)我以为是太小，调0.01发现还是不行，结果看网上的学习率给到0.0003了</p>
+<h3 id="6-4-后续的改进："><a href="#6-4-后续的改进：" class="headerlink" title="6.4 后续的改进："></a>6.4 后续的改进：</h3><p>​    Inceptionv2的改进：卷积层后面接BN层，以及用两个3X3的卷积层代替5x5卷积层（继续减少参数量) 也就是小卷积核串联代替大卷积核的方式，示意图如下在右图：</p>
+<p><img src="eafedb54bb9f0c71bc767a3becad93d1.png" alt="img"></p>
+<p>而后面的Inceptionv3的改进，又使用了一种非对称的卷积方式，将一个nxn的卷积划分为1xn和nx1的卷积，但是这种方式在网络的前期效果不好，得往后靠，主要是减少参数量的作用。</p>
+<p><img src="8637ec14f72279609f4730fe76509f71.png" alt="img"></p>
+<h2 id="七、ResNet-18"><a href="#七、ResNet-18" class="headerlink" title="七、ResNet-18"></a>七、ResNet-18</h2><h3 id="7-1-网络结构："><a href="#7-1-网络结构：" class="headerlink" title="7.1 网络结构："></a>7.1 网络结构：</h3><h4 id="残差模块："><a href="#残差模块：" class="headerlink" title="残差模块："></a><strong>残差模块：</strong></h4><p>​    简单粗暴的理解就是，残差块的输出为h(x) = x + f(x)，也就是说始终保留有用的信息x，以致于效果不会比之前的浅层网络差；不再是直接学习映射而是学习一个与估计值的差值，而是去学一个f(x) = h(x) - x也就残差的由来</p>
+<p>​    残差块的理解这一篇实在到位<a target="_blank" rel="noopener" href="https://blog.csdn.net/m0_64799972/article/details/132753608">ResNet-18超详细介绍</a></p>
+<p>​    原论文讲解：<a target="_blank" rel="noopener" href="https://blog.csdn.net/xiaoyuting999/article/details/135077588">ResNet 原论文讲解</a></p>
+<p><img src="image-20240812135858491.png" alt="image-20240812135858491"></p>
+<h4 id="整体结构："><a href="#整体结构：" class="headerlink" title="整体结构："></a><strong>整体结构：</strong></h4><p><img src="image-20240812141625354.png" alt="image-20240812141625354"></p>
+<p>​    在残差块这样的结构引入之前，如果一个神经网络模型的深度过深，就容易出现<strong>梯度爆炸和梯度消失</strong>的问题(因为是链式求导，网络加深可能导致指数型的爆炸或消失)，或者<strong>模型过深也会出现模型退化</strong>的问题</p>
+<p>​    ResNet中提出的<strong>BN解决了梯度消失和梯度爆炸的问题</strong>，不用再小心翼翼的设置权重初始化(原来的作用也是解决梯度消失和爆炸)(BN过后的值都是一样的)，而设置的<strong>残差模块也解决了深度过深模型退化的问题</strong>(<strong>同样也解决梯度的问题</strong>)。</p>
+<h3 id="7-2-为什么需要归一化："><a href="#7-2-为什么需要归一化：" class="headerlink" title="7.2 为什么需要归一化："></a>7.2 为什么需要归一化：</h3><p>​    <strong>消除量纲的影响或者不同范围值的影响</strong>，归一化缩放到统一尺度上，<strong>同时加速网络的收敛</strong>；比如在一个图片中有一部分的像素值特别高(背景很亮那种）但又不是我需要关注的(比如关注刚好是条黑狗），虽然梯度更新会将背景很亮的一块权重变小，但是因为物理值太大点，还是会对结果很有影响，意思就是如果量纲不同有些数据太大了会让模型被这些极端值所影响。</p>
+<h4 id="批量归一化："><a href="#批量归一化：" class="headerlink" title="批量归一化："></a><strong>批量归一化：</strong></h4><p>​    <strong>在此之前一般都是只在输入层上对数据归一化</strong>，但是ResNet中在中间数据也进行归一化，也就是一个batch进行归一化，因为输入层归一化后，经过一顿操作数据发生变化又需要调整，在此之后很多网络都是卷积后添加批量归一化</p>
+<p>​    2024.11.13回来再体会BN层，是因为前一层的训练过程参数变化，会导致后面部分输入的参数分布会发生变化，也就是论文中的：“Internal Covariate Shift”问题</p>
+<p>​    <strong>具体处理方式</strong>：求均值+方差+归一化，额外增加与尺度变换和偏移，也就是y=kx+b的线性变化，增加的两个参数k和b需要训练得到合适的数值</p>
+<p>​    既然使用了批量归一化，建议训练的batch也用大一点，这样接近整个训练集的均值和方差</p>
+<h3 id="7-3-心得体会："><a href="#7-3-心得体会：" class="headerlink" title="7.3 心得体会："></a>7.3 心得体会：</h3><p>​    写代码才体会到设计的精巧之处：如果不需要改变尺寸和通道数，就直接<strong>卷两层然后和原始的X相加</strong>，如果需要改变尺寸或者通道数，需要设置的地方就是将第一层卷积旁边的1X1设置的卷积核数量和步长设置<strong>相同卷积核和步长</strong>(具体多少根据需求），输出的结果尺寸通道信息也相同，然后左边的再多经过归一化和卷积操作(这里直接设定死，不会改变第一层卷积核输出的尺寸通道信息)</p>
+<p>​    在残差块代码中就只需要指定<strong>输入的通道数和输出的通道数</strong>，然后设置strides(输出的尺寸是<strong>原size // stride</strong>)</p>
+<p>​    解决梯度消失或者爆炸的问题常用方式：合理初始化权重、relu激活，升级结构</p>
+<h3 id="7-4-网络总结对比："><a href="#7-4-网络总结对比：" class="headerlink" title="7.4 网络总结对比："></a>7.4 网络总结对比：</h3><p>​    AlexNet中使用了dropout，resnet丢弃dropout使用batchnormalnize，这两个处理都必须用模型的train模式和eval模式控制</p>
+<p>​    ResNet结合vgg16的一直使用3X3的卷积核，也有结合Googlenet的1X1卷积核(用来减少参数量)，ResNet和Googlenet看上去都很复杂，但参数量都比vgg16这个看上去简单的网络要小很多(少了几乎10倍)，训练时间也短了很多</p>
+<p>​    <strong>ResNet连接和Googlenet叠加通道不同，ResNet要求尺寸和通道都必须一样，平行的叠加融合</strong></p>
+<h2 id="八、DenseNet"><a href="#八、DenseNet" class="headerlink" title="八、DenseNet"></a>八、DenseNet</h2><p>​    <a target="_blank" rel="noopener" href="https://arxiv.org/pdf/1608.06993.pdf">DenseNet</a> 与 <a target="_blank" rel="noopener" href="https://arxiv.org/pdf/1512.03385">ResNet</a>都是在计算机顶会CVPR上发表的，前者时间是2017年后者是2015年，DenseNet相当于是ResNet的一个改良版，把直接后面的输入和输出<strong>按通道平行融合也就是add(即尺寸通道数必须相同）</strong>改成了输入和输出直接在<strong>通道上连接也就是concatenate</strong>(<strong>跟GoogLeNet通道连接相同， inception块是分四路融合，在运算的过程中通过调整填充和步幅保持四路输出的尺寸不变，然后通道数叠加</strong>)</p>
+<p><img src="image-20240818170555879.png" alt="image-20240818170555879"></p>
+<p>​    <strong>ResNet是做值的叠加，通道数是不变的，DenseNet是做通道的合并</strong>，可以这么理解，add是每个特征图下的信息量增加了，但描述图像的维度本身并没有增加，所以总的信息量增加了，这是对图像的分类有益的，而concatenate是通道数的合并，每一层的特征图的信息量没有变，变的是通道数变多了</p>
+<h4 id="卷积块："><a href="#卷积块：" class="headerlink" title="卷积块："></a>卷积块：</h4><p>​    在RestNet中的卷积块的形式：“卷积 + 归一化 + 激活函数” ，在DensNet中改成了“归一化 + 激活函数 + 卷积” ，这里的卷积还是3X3且填充为1，且一个这样的卷积块就一层卷积，所以不会改变尺寸信息，我们仿照ResNet18做一个简单版的DenseNet，用四个稠密块(每个是由四个卷积块组成)搭建完成</p>
+<h4 id="稠密块："><a href="#稠密块：" class="headerlink" title="稠密块："></a>稠密块：</h4><p>​    一个稠密块是由多个上面的的卷积块组成的，<strong>每个卷积块使用相同数量的输出通道</strong>(nums_channel)，仿照ResNet18，我设置一个稠密块中有四个卷积层，也就是有四个卷积块组成一个稠密块。</p>
+<p>​    <strong>因为这里的卷积层不会改尺寸信息</strong>，每一个卷积块都会<strong>按照concat的方式把特征图连接起来</strong>，所以经过这个稠密块之后通道数会增加4<em>nums_channel，也就是说<em>*卷积块的通道数控制了相当于输入通道数的增长，所以也被称为增长率</em></em></p>
+<h4 id="过渡层："><a href="#过渡层：" class="headerlink" title="过渡层："></a>过渡层：</h4><p>​    因为使用稠密块的方式会使得特征图的通道数变的很多，所以这里使用了1X1的卷积核来减小通道数，同时使用size和stride都为2的平均池化使得特征图的宽高减半，降低模型复杂度。</p>
+<p>​    即过渡层：批量归一化—&gt; 激活函数 —&gt; 1X1卷积—&gt;平均池化</p>
+<h2 id="九、迁移学习的思路："><a href="#九、迁移学习的思路：" class="headerlink" title="九、迁移学习的思路："></a>九、迁移学习的思路：</h2><p>​    <strong>一个常见的误解没有谷歌那样巨量的数据，我就无法训练出一个非常好的模型</strong>，其实可以用预训练模型(在其他庞大数据集上训练完成）结合自己的数据集对模型进行微调的过程，比如在imagenet这样庞大的数据集上训练的分类模型，我拿去做其他的分类；</p>
+<p>​    用下图举个例子， 在一些底层的网络提取的特征诸如线条的简单特征或者识别各种纹理信息，就可以冻结(反向传播不再修改)，这样比随机初始化的效果要好，我仅需关注高层进行微调，比如我直接拿在imagenet上训练完成的vgg16做cifar10分类，仅修改最后一层输出层为10，同样也能获得很好的效果。</p>
+<p><img src="image-20240812163254408.png" alt="image-20240812163254408"></p>
+<p>​    <strong>精髓在于：</strong>浅层卷积层学习到的线条，纹理信息等等都是较为通用的信息，这信息可以在本网络使用，同样也<strong>适用于其他类似任务的网络</strong>。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://worlds3.github.io">5ha</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://worlds3.github.io/2024/08/01/%E7%BB%8F%E5%85%B8CNN%E6%A2%B3%E7%90%86/">https://worlds3.github.io/2024/08/01/%E7%BB%8F%E5%85%B8CNN%E6%A2%B3%E7%90%86/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://worlds3.github.io" target="_blank">5ha的个人空间</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/CNN/">CNN</a></div><div class="post-share"><div class="social-share" data-image="/2024/08/01/%E7%BB%8F%E5%85%B8CNN%E6%A2%B3%E7%90%86/image-20240810212320312.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2025/11/17/myfeelings/" title="myfeelings"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">myfeelings</div></div><div class="info-2"><div class="info-item-1">阳光明媚来民大的第四年了，难得有这么好的天气和心情，出去遛弯哈哈哈  </div></div></div></a></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="lv-container" data-id="city" data-uid="MTAyMC82MTA0Ny8zNzUxNw=="></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">5ha</div><div class="author-info-description">得之坦然，失之淡然</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">7</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">6</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/worlds3"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/worlds3" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:vmerluckycat5@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎光临我的博客！UESTC研0，热爱AI，不定期更新学习/科研/生活等等。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%89%8D%E7%BD%AE%E5%9F%BA%E7%A1%80%EF%BC%9A"><span class="toc-text">一、前置基础：</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E6%84%9F%E5%8F%97%E9%87%8E%EF%BC%9A"><span class="toc-text">1.1 感受野：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E4%BD%9C%E7%94%A8%EF%BC%9A"><span class="toc-text">1.2 作用：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E5%8D%B7%E7%A7%AF%E5%B1%82-Convolutional-Layer-%EF%BC%9A"><span class="toc-text">1.3 卷积层(Convolutional Layer)：</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8D%B7%E7%A7%AF%E5%88%B0%E5%BA%95%E8%B5%B7%E5%88%B0%E4%BB%80%E4%B9%88%E4%BD%9C%E7%94%A8%EF%BC%9A"><span class="toc-text">卷积到底起到什么作用：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-%E6%B1%A0%E5%8C%96%E5%B1%82-Pooling-Layer-%EF%BC%9A"><span class="toc-text">1.4 池化层(Pooling Layer)：</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9C%80%E5%A4%A7%E6%B1%A0%E5%8C%96%EF%BC%9A"><span class="toc-text">最大池化：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%B9%B3%E5%9D%87%E6%B1%A0%E5%8C%96%EF%BC%9A"><span class="toc-text">平均池化：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%A8%E5%B1%80%E6%B1%A0%E5%8C%96%EF%BC%9A"><span class="toc-text">全局池化：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#CNN%E5%AF%B9%E6%AF%94DNN%EF%BC%9A"><span class="toc-text">CNN对比DNN：</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81LeNet5"><span class="toc-text">二、LeNet5:</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E7%BD%91%E7%BB%9C%E7%BB%93%E6%9E%84%EF%BC%9A"><span class="toc-text">2.1 网络结构：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E4%BB%A3%E7%A0%81%E7%BB%86%E8%8A%82%EF%BC%9A"><span class="toc-text">2.2 代码细节：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E7%8A%AF%E9%94%99%EF%BC%9A"><span class="toc-text">2.3 犯错：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81AlexNet"><span class="toc-text">三、AlexNet:</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E7%BD%91%E7%BB%9C%E7%BB%93%E6%9E%84%EF%BC%9A"><span class="toc-text">3.1 网络结构：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E6%94%B9%E8%BF%9B%E7%82%B9-%E7%9B%B8%E5%AF%B9LeNet5"><span class="toc-text">3.2 改进点(相对LeNet5):</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E6%80%BB%E7%BB%93%EF%BC%9A"><span class="toc-text">3.3 总结：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E9%9C%80%E6%B3%A8%E6%84%8F%E7%9A%84%E7%BB%86%E8%8A%82%EF%BC%9A"><span class="toc-text">3.4 需注意的细节：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81VGG16"><span class="toc-text">四、VGG16</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E7%BD%91%E7%BB%9C%E7%BB%93%E6%9E%84%EF%BC%9A"><span class="toc-text">4.1 网络结构：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E4%B8%A4%E4%B8%AA3X3%E7%9A%84%E5%8D%B7%E7%A7%AF%E6%A0%B8%E4%BB%A3%E6%9B%BF%E4%B8%80%E4%B8%AA5X5%E7%9A%84%E5%8D%B7%E7%A7%AF%E6%A0%B8%EF%BC%9A"><span class="toc-text">4.2 两个3X3的卷积核代替一个5X5的卷积核：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E4%B8%8D%E6%94%B6%E6%95%9B%E7%9A%84%E5%8E%9F%E5%9B%A0%EF%BC%9A"><span class="toc-text">4.3 不收敛的原因：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81NiN%EF%BC%9A"><span class="toc-text">五、NiN：</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E7%BD%91%E7%BB%9C%E7%BB%93%E6%9E%84%EF%BC%9A"><span class="toc-text">5.1 网络结构：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%88%9B%E6%96%B0%E7%82%B9"><span class="toc-text">5.2 创新点:</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E7%BB%86%E8%8A%82%EF%BC%9A"><span class="toc-text">5.3 细节：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81GoogLeNet%EF%BC%9A"><span class="toc-text">六、GoogLeNet：</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E7%BD%91%E7%BB%9C%E7%BB%93%E6%9E%84%EF%BC%9A"><span class="toc-text">6.1 网络结构：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E5%88%9B%E6%96%B0%E7%82%B9%EF%BC%9A"><span class="toc-text">6.2 创新点：</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%9A%E5%B0%BA%E5%BA%A6%E5%8D%B7%E7%A7%AF%EF%BC%9A"><span class="toc-text">多尺度卷积：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1X1%E7%9A%84%E5%8D%B7%E7%A7%AF%E6%A0%B8"><span class="toc-text">1X1的卷积核:</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9D%97%E7%9A%84%E6%80%9D%E6%83%B3"><span class="toc-text">块的思想:</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%9E%8D%E5%90%88%E8%BF%9E%E6%8E%A5%E6%96%B9%E5%BC%8F%EF%BC%9A"><span class="toc-text">融合连接方式：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%A8%E5%B1%80%E5%B9%B3%E5%9D%87%E6%B1%A0%E5%8C%96%E5%B1%82-GAP"><span class="toc-text">全局平均池化层(GAP):</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E7%BB%86%E8%8A%82%EF%BC%9A"><span class="toc-text">6.3 细节：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E5%90%8E%E7%BB%AD%E7%9A%84%E6%94%B9%E8%BF%9B%EF%BC%9A"><span class="toc-text">6.4 后续的改进：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81ResNet-18"><span class="toc-text">七、ResNet-18</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E7%BD%91%E7%BB%9C%E7%BB%93%E6%9E%84%EF%BC%9A"><span class="toc-text">7.1 网络结构：</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%AE%8B%E5%B7%AE%E6%A8%A1%E5%9D%97%EF%BC%9A"><span class="toc-text">残差模块：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%95%B4%E4%BD%93%E7%BB%93%E6%9E%84%EF%BC%9A"><span class="toc-text">整体结构：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%BD%92%E4%B8%80%E5%8C%96%EF%BC%9A"><span class="toc-text">7.2 为什么需要归一化：</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%89%B9%E9%87%8F%E5%BD%92%E4%B8%80%E5%8C%96%EF%BC%9A"><span class="toc-text">批量归一化：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E5%BF%83%E5%BE%97%E4%BD%93%E4%BC%9A%EF%BC%9A"><span class="toc-text">7.3 心得体会：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-%E7%BD%91%E7%BB%9C%E6%80%BB%E7%BB%93%E5%AF%B9%E6%AF%94%EF%BC%9A"><span class="toc-text">7.4 网络总结对比：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81DenseNet"><span class="toc-text">八、DenseNet</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8D%B7%E7%A7%AF%E5%9D%97%EF%BC%9A"><span class="toc-text">卷积块：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%A8%A0%E5%AF%86%E5%9D%97%EF%BC%9A"><span class="toc-text">稠密块：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BF%87%E6%B8%A1%E5%B1%82%EF%BC%9A"><span class="toc-text">过渡层：</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81%E8%BF%81%E7%A7%BB%E5%AD%A6%E4%B9%A0%E7%9A%84%E6%80%9D%E8%B7%AF%EF%BC%9A"><span class="toc-text">九、迁移学习的思路：</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/01/16/DIY%E5%BE%AE%E8%B0%83%E4%B8%80%E4%B8%AA%E5%BE%AE%E4%BF%A1%E5%88%86%E8%BA%AB/" title="DIY微调一个微信分身"><img src="/2026/01/16/DIY%E5%BE%AE%E8%B0%83%E4%B8%80%E4%B8%AA%E5%BE%AE%E4%BF%A1%E5%88%86%E8%BA%AB/%E5%9B%BE%E7%89%8712.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="DIY微调一个微信分身"/></a><div class="content"><a class="title" href="/2026/01/16/DIY%E5%BE%AE%E8%B0%83%E4%B8%80%E4%B8%AA%E5%BE%AE%E4%BF%A1%E5%88%86%E8%BA%AB/" title="DIY微调一个微信分身">DIY微调一个微信分身</a><time datetime="2026-01-16T13:13:55.000Z" title="发表于 2026-01-16 21:13:55">2026-01-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/12/30/CPT-SFT-DPO%E5%AE%9E%E6%88%98/" title="CPT-SFT-DPO实战"><img src="/2025/12/30/CPT-SFT-DPO%E5%AE%9E%E6%88%98/cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="CPT-SFT-DPO实战"/></a><div class="content"><a class="title" href="/2025/12/30/CPT-SFT-DPO%E5%AE%9E%E6%88%98/" title="CPT-SFT-DPO实战">CPT-SFT-DPO实战</a><time datetime="2025-12-30T12:50:36.000Z" title="发表于 2025-12-30 20:50:36">2025-12-30</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/12/29/Pyinstaller%E6%89%93%E5%8C%85YOLOv11%E5%92%8CPyQt5%E9%A1%B9%E7%9B%AE%E4%B8%BAexe%E6%96%87%E4%BB%B6/" title="Pyinstaller打包YOLOv11和PyQt5项目为exe文件">Pyinstaller打包YOLOv11和PyQt5项目为exe文件</a><time datetime="2025-12-29T03:40:05.000Z" title="发表于 2025-12-29 11:40:05">2025-12-29</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/12/28/YOLO%E5%BC%95%E5%85%A5%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%A8%A1%E5%9D%97/" title="YOLO引入注意力模块"><img src="/2025/12/28/YOLO%E5%BC%95%E5%85%A5%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%A8%A1%E5%9D%97/cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="YOLO引入注意力模块"/></a><div class="content"><a class="title" href="/2025/12/28/YOLO%E5%BC%95%E5%85%A5%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%A8%A1%E5%9D%97/" title="YOLO引入注意力模块">YOLO引入注意力模块</a><time datetime="2025-12-28T14:32:50.000Z" title="发表于 2025-12-28 22:32:50">2025-12-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/11/18/LLM%E5%BE%AE%E8%B0%83%E7%90%86%E8%AE%BA%E6%95%B4%E7%90%86/" title="LLM微调理论整理"><img src="/2025/11/18/LLM%E5%BE%AE%E8%B0%83%E7%90%86%E8%AE%BA%E6%95%B4%E7%90%86/image-20251017134429782.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="LLM微调理论整理"/></a><div class="content"><a class="title" href="/2025/11/18/LLM%E5%BE%AE%E8%B0%83%E7%90%86%E8%AE%BA%E6%95%B4%E7%90%86/" title="LLM微调理论整理">LLM微调理论整理</a><time datetime="2025-11-17T16:13:40.000Z" title="发表于 2025-11-18 00:13:40">2025-11-18</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(/2024/08/01/%E7%BB%8F%E5%85%B8CNN%E6%A2%B3%E7%90%86/image-20240810212320312.png);"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 5ha</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.2</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.2"></script><script src="/js/main.js?v=5.5.2"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.0.0/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+
+  const loadLivere = (el, path) => {
+    window.livereOptions = {
+      refer: path || location.pathname
+    }
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyLivere = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    if (typeof LivereTower === 'object') window.LivereTower.init()
+    else {
+      (function(d, s) {
+          var j, e = d.getElementsByTagName(s)[0];
+          if (typeof LivereTower === 'function') { return; }
+          j = d.createElement(s);
+          j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+          j.async = true;
+          e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    }
+  }
+
+  if (isShuoshuo) {
+    'Livere' === 'Livere'
+      ? window.shuoshuoComment = { loadComment: loadLivere }
+      : window.loadOtherComment = loadLivere
+    return
+  }
+
+  if ('Livere' === 'Livere' || !false) {
+    if (false) btf.loadComment(document.getElementById('lv-container'), loadLivere)
+    else loadLivere()
+  } else {
+    window.loadOtherComment = loadLivere
+  }
+})()</script></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-ribbon.min.js" size="230" alpha="0.6" zIndex="-1" mobile="false" data-click="false"></script><script async data-pjax src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.2"></script></div></div></body></html>
