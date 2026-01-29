@@ -1,0 +1,295 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Github常用命令 | 5ha的个人空间</title><meta name="author" content="5ha"><meta name="copyright" content="5ha"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="两种使用场景1. 从远程clone下来123456git clone git@github.com:worlds3&#x2F;DCGAN.git #选择sshgit add . # 提交所有修改到缓冲区git commit -m &quot;描述修改信息&quot; # 提交到本地仓库git push origin main # 提交到远程仓库# 可能有需求拉取远程更新 # git pull origin">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Github常用命令">
+<meta property="og:url" content="https://worlds3.github.io/2024/09/21/Github%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/index.html">
+<meta property="og:site_name" content="5ha的个人空间">
+<meta property="og:description" content="两种使用场景1. 从远程clone下来123456git clone git@github.com:worlds3&#x2F;DCGAN.git #选择sshgit add . # 提交所有修改到缓冲区git commit -m &quot;描述修改信息&quot; # 提交到本地仓库git push origin main # 提交到远程仓库# 可能有需求拉取远程更新 # git pull origin">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://worlds3.github.io/img/avatar.jpg">
+<meta property="article:published_time" content="2024-09-21T12:58:41.000Z">
+<meta property="article:modified_time" content="2026-01-29T05:05:01.285Z">
+<meta property="article:author" content="5ha">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://worlds3.github.io/img/avatar.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Github常用命令",
+  "url": "https://worlds3.github.io/2024/09/21/Github%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/",
+  "image": "https://worlds3.github.io/img/avatar.jpg",
+  "datePublished": "2024-09-21T12:58:41.000Z",
+  "dateModified": "2026-01-29T05:05:01.285Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "5ha",
+      "url": "https://worlds3.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/avatar.jpg"><link rel="canonical" href="https://worlds3.github.io/2024/09/21/Github%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.2"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":300,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'medium_zoom',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.12.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Github常用命令',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">11</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于me</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/banner.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">5ha的个人空间</span></a><a class="nav-page-title" href="/"><span class="site-name">Github常用命令</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于me</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Github常用命令</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-09-21T12:58:41.000Z" title="发表于 2024-09-21 20:58:41">2024-09-21</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-01-29T05:05:01.285Z" title="更新于 2026-01-29 13:05:01">2026-01-29</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/">工具使用</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">667</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>2分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="两种使用场景"><a href="#两种使用场景" class="headerlink" title="两种使用场景"></a>两种使用场景</h2><h3 id="1-从远程clone下来"><a href="#1-从远程clone下来" class="headerlink" title="1. 从远程clone下来"></a>1. 从远程clone下来</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">git clone git@github.com:worlds3/DCGAN.git <span class="comment">#选择ssh</span></span><br><span class="line">git add . <span class="comment"># 提交所有修改到缓冲区</span></span><br><span class="line">git commit -m <span class="string">&quot;描述修改信息&quot;</span> <span class="comment"># 提交到本地仓库</span></span><br><span class="line">git push origin main <span class="comment"># 提交到远程仓库</span></span><br><span class="line"><span class="comment"># 可能有需求拉取远程更新 </span></span><br><span class="line"><span class="comment"># git pull origin main</span></span><br></pre></td></tr></table></figure>
+<h3 id="2-从零创建新仓库"><a href="#2-从零创建新仓库" class="headerlink" title="2. 从零创建新仓库"></a>2. 从零创建新仓库</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">mkdir project &amp;&amp; cd project <span class="comment"># 创建并进入本地文件夹</span></span><br><span class="line">git init <span class="comment"># 初始化为git仓库</span></span><br><span class="line">touch REDME.md <span class="comment"># 进行创建文件操作等等</span></span><br><span class="line">touch .gitignore <span class="comment"># 这里应先建立一个 .gitignore 把忽略的文件和文件目录放进去</span></span><br><span class="line">git add . <span class="keyword">or</span>  git add &lt;file&gt; <span class="comment"># 提交所有 or 部分修改到缓冲区</span></span><br><span class="line">git commit -m <span class="string">&quot;修改的描述信息&quot;</span> <span class="comment"># 提交到本地仓库</span></span><br><span class="line">git remote add origin git@github.com:worlds3/DCGAN.git <span class="comment">#关联远程仓库，而上面只clone下来的已经关联了，所以push and pull 不用重复关联</span></span><br><span class="line">git branch -m master main <span class="comment"># 因为本地是master分支， 但远程仓库是main，所以要转换一下</span></span><br><span class="line">git pull --rebase origin main <span class="comment"># 远程有readme.md，拉一下，不懂为什么不拉的话就传不了诶。</span></span><br><span class="line"><span class="comment"># （这里如果是更新代码的话需要先git staus）</span></span><br><span class="line">git push -u origin main <span class="comment"># 合并代码</span></span><br></pre></td></tr></table></figure>
+<h3 id="3-github建立连接"><a href="#3-github建立连接" class="headerlink" title="3.github建立连接"></a>3.github建立连接</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t rsa -C &#x27;vmerluckycat5@gmail.com&#x27;</span><br><span class="line">ssh -T git@github.com # 查看连接状态</span><br><span class="line">git config --global user.name  &#x27;worlds3&#x27;</span><br><span class="line">git config --global user.email &#x27;vmerluckycat5@gmail.com &#x27;</span><br></pre></td></tr></table></figure>
+<h2 id="QA"><a href="#QA" class="headerlink" title="QA:"></a>QA:</h2><h3 id="1-如果出现ssh-connect-to-host-github-com-port-22-Connection-timed-out的报错怎么解决？"><a href="#1-如果出现ssh-connect-to-host-github-com-port-22-Connection-timed-out的报错怎么解决？" class="headerlink" title="1.如果出现ssh: connect to host github.com port 22: Connection timed out的报错怎么解决？"></a>1.如果出现ssh: connect to host github.com port 22: Connection timed out的报错怎么解决？</h3><p>​    修改C盘中.ssh的config，端口改成443，会提示有风险，直接无视风险访问[手动狗头]，原因好像是校园网屏蔽了22端口，我看bc实验室的端口就是22.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Host github.com</span><br><span class="line">  Hostname ssh.github.com</span><br><span class="line">  Port 443</span><br></pre></td></tr></table></figure>
+<h3 id="2-怎么忽略掉数据集和一些其他的ide产生缓存文件"><a href="#2-怎么忽略掉数据集和一些其他的ide产生缓存文件" class="headerlink" title="2.怎么忽略掉数据集和一些其他的ide产生缓存文件"></a>2.怎么忽略掉数据集和一些其他的ide产生缓存文件</h3><p>​    创建.gitignore文件，把想忽略的文件夹或者文件路径放进去就不追踪了。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># 可以像这样</span><br><span class="line">cifar/</span><br><span class="line">1.py</span><br><span class="line">实验记录.md</span><br><span class="line">attention.py</span><br><span class="line">Practice_11_Squeeze-and-Excitation.py</span><br><span class="line">practise_10_cifar100.py</span><br><span class="line">t1.py</span><br><span class="line">test.py</span><br><span class="line">.vscode/</span><br><span class="line">results/</span><br><span class="line">**/__pycache__/</span><br><span class="line">*/__pycache__/</span><br></pre></td></tr></table></figure>
+<h2 id="其他使用命令"><a href="#其他使用命令" class="headerlink" title="其他使用命令"></a>其他使用命令</h2><h3 id="1-查看仓库状态"><a href="#1-查看仓库状态" class="headerlink" title="1.查看仓库状态"></a>1.查看仓库状态</h3><p>但只返回了声明了为git仓库</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git status</span><br></pre></td></tr></table></figure>
+<h3 id="2-初始化为git仓库"><a href="#2-初始化为git仓库" class="headerlink" title="2.初始化为git仓库"></a>2.初始化为git仓库</h3><p>使用init声明为git 仓库，否则其余命令都无效的，直接从github上clone下来的默认为git仓库</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git init</span><br></pre></td></tr></table></figure>
+<h3 id="3-添加文件到仓库"><a href="#3-添加文件到仓库" class="headerlink" title="3.添加文件到仓库"></a>3.添加文件到仓库</h3><p>不进行add不会被仓库认可，而git add并没有把文件上传到github仓库，而是放在一个缓冲区，然后使用commit命令给他提交。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git add &lt;file&gt;</span><br><span class="line">git commit -m &quot;附加说明信息&quot; # 提交到本地仓库</span><br><span class="line">git push origin main #提交到远程仓库</span><br></pre></td></tr></table></figure>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://worlds3.github.io">5ha</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://worlds3.github.io/2024/09/21/Github%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/">https://worlds3.github.io/2024/09/21/Github%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://worlds3.github.io" target="_blank">5ha的个人空间</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/img/avatar.jpg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2024/10/29/pytorch%E4%BD%BF%E7%94%A8%E7%BB%86%E8%8A%82%E6%9D%82%E8%B0%88/" title="pytorch使用细节杂谈"><img class="cover" src="/2024/10/29/pytorch%E4%BD%BF%E7%94%A8%E7%BB%86%E8%8A%82%E6%9D%82%E8%B0%88/torch.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">pytorch使用细节杂谈</div></div><div class="info-2"><div class="info-item-1">矩阵相加：​    在numpy中(2, 256) + (1, 256)，会把(1, 256)直接复制上面一行变成(2, 256)然后相加，也就是广播机制，也很合理就是直接扩展维度小的相加，在XW+b中用的很多，因为b就是(1, size)的行向量要和前面做相加操作 ​    torch.long()即向下取整 实例和类区别：​    实例化的self.linear，就直接调用就好，为什我还傻乎乎的想着输入的y.reshape((-1, y.shape[-1]))是一个（时间步数*批量大小， 隐藏单元数）的二维张量，这明明和前面定义的线性层不一致  参数的requires_grad:​    网络中的参数可以设置requires_grad为true还是false，要同时设置这个为true，以及将他注册到优化器中，才会在训练过程中更新参数pytorch中模型参数requires_grad的含义 death_函数​    detach_是用来防止梯度积累(不是数值上的爆炸和消失)，是从计算量和内存的角度考虑，因为在前向传播过程中会保存一些相关的信息，以用来反向传播，如果不分离出来每次...</div></div></div></a><a class="pagination-related" href="/2024/08/23/%E7%BB%8F%E5%85%B8RNN%E6%A2%B3%E7%90%86/" title="经典RNN梳理"><img class="cover" src="/2024/08/23/%E7%BB%8F%E5%85%B8RNN%E6%A2%B3%E7%90%86/image-20240821204922558.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">经典RNN梳理</div></div><div class="info-2"><div class="info-item-1">一、前言​    学习RNN开始真的尤其不好理解时间步、数据格式等等，因为传统的BP和CNN可以根据图直观理解，比如下面的BP  ​    或者CNN中的卷积层，池化层，全连接层可以用图绘制出来再空间上理解，一层层的叠加，在写代码的时候就按照图搭积木一样，但是RNN因为是序列展开，所以开始有点难理解，输入数据也变的难以理解，但RNN这块的数据都如下图：  二、普通RNN：2.1 网络结构： ​    关键理解按照时间这种序列的形式展开，MLP还是原来的MLP只不过给他按照时间展开就成为一个循环，也就是隐状态不断地循环更新，所以也叫循环神经网络 ​    pytorch中RNN模块的输出，output是h_t，每个时刻的容器装在一起，而h_n 是最后一个时刻state,这里跟李沐老师从零开始实现RNN中的output不一样，因为是自己实现的，所以那里的output是真输出的容器，即y = relu(h * w_hq + b_q)的容器，所以使用nn.RNN时需要自己添加一个输出层  ​    而且如果是多层的隐藏层，output里面装的只是最上面一层的ht。 三、GRU:3.1 门...</div></div></div></a></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="lv-container" data-id="city" data-uid="MTAyMC82MTA0Ny8zNzUxNw=="></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">5ha</div><div class="author-info-description">得之坦然，失之淡然</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">11</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/worlds3"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/worlds3" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:vmerluckycat5@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎光临我的博客！UESTC研0，热爱AI，不定期更新学习/科研/生活等等。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%A4%E7%A7%8D%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-text">两种使用场景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E4%BB%8E%E8%BF%9C%E7%A8%8Bclone%E4%B8%8B%E6%9D%A5"><span class="toc-text">1. 从远程clone下来</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E4%BB%8E%E9%9B%B6%E5%88%9B%E5%BB%BA%E6%96%B0%E4%BB%93%E5%BA%93"><span class="toc-text">2. 从零创建新仓库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-github%E5%BB%BA%E7%AB%8B%E8%BF%9E%E6%8E%A5"><span class="toc-text">3.github建立连接</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#QA"><span class="toc-text">QA:</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%A6%82%E6%9E%9C%E5%87%BA%E7%8E%B0ssh-connect-to-host-github-com-port-22-Connection-timed-out%E7%9A%84%E6%8A%A5%E9%94%99%E6%80%8E%E4%B9%88%E8%A7%A3%E5%86%B3%EF%BC%9F"><span class="toc-text">1.如果出现ssh: connect to host github.com port 22: Connection timed out的报错怎么解决？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%80%8E%E4%B9%88%E5%BF%BD%E7%95%A5%E6%8E%89%E6%95%B0%E6%8D%AE%E9%9B%86%E5%92%8C%E4%B8%80%E4%BA%9B%E5%85%B6%E4%BB%96%E7%9A%84ide%E4%BA%A7%E7%94%9F%E7%BC%93%E5%AD%98%E6%96%87%E4%BB%B6"><span class="toc-text">2.怎么忽略掉数据集和一些其他的ide产生缓存文件</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B6%E4%BB%96%E4%BD%BF%E7%94%A8%E5%91%BD%E4%BB%A4"><span class="toc-text">其他使用命令</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%9F%A5%E7%9C%8B%E4%BB%93%E5%BA%93%E7%8A%B6%E6%80%81"><span class="toc-text">1.查看仓库状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%BAgit%E4%BB%93%E5%BA%93"><span class="toc-text">2.初始化为git仓库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E6%B7%BB%E5%8A%A0%E6%96%87%E4%BB%B6%E5%88%B0%E4%BB%93%E5%BA%93"><span class="toc-text">3.添加文件到仓库</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/01/16/DIY%E5%BE%AE%E8%B0%83%E4%B8%80%E4%B8%AA%E5%BE%AE%E4%BF%A1%E5%88%86%E8%BA%AB/" title="DIY微调一个微信分身"><img src="/2026/01/16/DIY%E5%BE%AE%E8%B0%83%E4%B8%80%E4%B8%AA%E5%BE%AE%E4%BF%A1%E5%88%86%E8%BA%AB/%E5%9B%BE%E7%89%8712.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="DIY微调一个微信分身"/></a><div class="content"><a class="title" href="/2026/01/16/DIY%E5%BE%AE%E8%B0%83%E4%B8%80%E4%B8%AA%E5%BE%AE%E4%BF%A1%E5%88%86%E8%BA%AB/" title="DIY微调一个微信分身">DIY微调一个微信分身</a><time datetime="2026-01-16T13:13:55.000Z" title="发表于 2026-01-16 21:13:55">2026-01-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/12/30/CPT-SFT-DPO%E5%AE%9E%E6%88%98/" title="CPT-SFT-DPO实战"><img src="/2025/12/30/CPT-SFT-DPO%E5%AE%9E%E6%88%98/cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="CPT-SFT-DPO实战"/></a><div class="content"><a class="title" href="/2025/12/30/CPT-SFT-DPO%E5%AE%9E%E6%88%98/" title="CPT-SFT-DPO实战">CPT-SFT-DPO实战</a><time datetime="2025-12-30T12:50:36.000Z" title="发表于 2025-12-30 20:50:36">2025-12-30</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/12/29/Pyinstaller%E6%89%93%E5%8C%85YOLOv11%E5%92%8CPyQt5%E9%A1%B9%E7%9B%AE%E4%B8%BAexe%E6%96%87%E4%BB%B6/" title="Pyinstaller打包YOLOv11和PyQt5项目为exe文件">Pyinstaller打包YOLOv11和PyQt5项目为exe文件</a><time datetime="2025-12-29T03:40:05.000Z" title="发表于 2025-12-29 11:40:05">2025-12-29</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/12/28/YOLO%E5%BC%95%E5%85%A5%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%A8%A1%E5%9D%97/" title="YOLO引入注意力模块"><img src="/2025/12/28/YOLO%E5%BC%95%E5%85%A5%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%A8%A1%E5%9D%97/cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="YOLO引入注意力模块"/></a><div class="content"><a class="title" href="/2025/12/28/YOLO%E5%BC%95%E5%85%A5%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%A8%A1%E5%9D%97/" title="YOLO引入注意力模块">YOLO引入注意力模块</a><time datetime="2025-12-28T14:32:50.000Z" title="发表于 2025-12-28 22:32:50">2025-12-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/11/18/LLM%E5%BE%AE%E8%B0%83%E7%90%86%E8%AE%BA%E6%95%B4%E7%90%86/" title="LLM微调理论整理"><img src="/2025/11/18/LLM%E5%BE%AE%E8%B0%83%E7%90%86%E8%AE%BA%E6%95%B4%E7%90%86/image-20251017134429782.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="LLM微调理论整理"/></a><div class="content"><a class="title" href="/2025/11/18/LLM%E5%BE%AE%E8%B0%83%E7%90%86%E8%AE%BA%E6%95%B4%E7%90%86/" title="LLM微调理论整理">LLM微调理论整理</a><time datetime="2025-11-17T16:13:40.000Z" title="发表于 2025-11-18 00:13:40">2025-11-18</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(/img/banner.jpg);"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 5ha</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.2</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.2"></script><script src="/js/main.js?v=5.5.2"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.0.0/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+
+  const loadLivere = (el, path) => {
+    window.livereOptions = {
+      refer: path || location.pathname
+    }
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyLivere = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    if (typeof LivereTower === 'object') window.LivereTower.init()
+    else {
+      (function(d, s) {
+          var j, e = d.getElementsByTagName(s)[0];
+          if (typeof LivereTower === 'function') { return; }
+          j = d.createElement(s);
+          j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+          j.async = true;
+          e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    }
+  }
+
+  if (isShuoshuo) {
+    'Livere' === 'Livere'
+      ? window.shuoshuoComment = { loadComment: loadLivere }
+      : window.loadOtherComment = loadLivere
+    return
+  }
+
+  if ('Livere' === 'Livere' || !false) {
+    if (false) btf.loadComment(document.getElementById('lv-container'), loadLivere)
+    else loadLivere()
+  } else {
+    window.loadOtherComment = loadLivere
+  }
+})()</script></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-ribbon.min.js" size="230" alpha="0.6" zIndex="-1" mobile="false" data-click="false"></script><script async data-pjax src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.2"></script></div></div></body></html>
