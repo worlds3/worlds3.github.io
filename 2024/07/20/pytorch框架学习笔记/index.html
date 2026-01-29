@@ -1,0 +1,403 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>pytorch框架学习笔记 | 5ha的个人空间</title><meta name="author" content="5ha"><meta name="copyright" content="5ha"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="对于pytorch这种框架的学习，初学时不要死扣原理！！！要先会用，回过头来结合深度学习理论再弄懂框架封装的算子&#x2F;方法的作用 一、Tensorboard作用：可视化工具 1.1导入方式12import torch.utils.tensorboardfrom torch.utils.tensorboard import SummaryWriter # 用来输出 1.2 logs文件打开方式1tens">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pytorch框架学习笔记">
+<meta property="og:url" content="https://worlds3.github.io/2024/07/20/pytorch%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="5ha的个人空间">
+<meta property="og:description" content="对于pytorch这种框架的学习，初学时不要死扣原理！！！要先会用，回过头来结合深度学习理论再弄懂框架封装的算子&#x2F;方法的作用 一、Tensorboard作用：可视化工具 1.1导入方式12import torch.utils.tensorboardfrom torch.utils.tensorboard import SummaryWriter # 用来输出 1.2 logs文件打开方式1tens">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://worlds3.github.io/2024/07/20/pytorch%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/torch.png">
+<meta property="article:published_time" content="2024-07-20T06:48:27.000Z">
+<meta property="article:modified_time" content="2026-01-29T06:58:01.664Z">
+<meta property="article:author" content="5ha">
+<meta property="article:tag" content="pytorch">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://worlds3.github.io/2024/07/20/pytorch%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/torch.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "pytorch框架学习笔记",
+  "url": "https://worlds3.github.io/2024/07/20/pytorch%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/",
+  "image": "https://worlds3.github.io/2024/07/20/pytorch%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/torch.png",
+  "datePublished": "2024-07-20T06:48:27.000Z",
+  "dateModified": "2026-01-29T06:58:01.664Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "5ha",
+      "url": "https://worlds3.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/avatar.jpg"><link rel="canonical" href="https://worlds3.github.io/2024/07/20/pytorch%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.2"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":300,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'medium_zoom',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.12.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'pytorch框架学习笔记',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">13</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于me</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/2024/07/20/pytorch%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/torch.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">5ha的个人空间</span></a><a class="nav-page-title" href="/"><span class="site-name">pytorch框架学习笔记</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于me</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">pytorch框架学习笔记</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-07-20T06:48:27.000Z" title="发表于 2024-07-20 14:48:27">2024-07-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-01-29T06:58:01.664Z" title="更新于 2026-01-29 14:58:01">2026-01-29</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E5%9F%BA%E7%A1%80/">深度学习基础</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">4.2k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>15分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p><strong>对于pytorch这种框架的学习，初学时不要死扣原理！！！要先会用，回过头来结合深度学习理论再弄懂框架封装的算子/方法的作用</strong></p>
+<h2 id="一、Tensorboard"><a href="#一、Tensorboard" class="headerlink" title="一、Tensorboard"></a>一、Tensorboard</h2><p>作用：<strong>可视化工具</strong></p>
+<h3 id="1-1导入方式"><a href="#1-1导入方式" class="headerlink" title="1.1导入方式"></a>1.1导入方式</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch.utils.tensorboard</span><br><span class="line"><span class="keyword">from</span> torch.utils.tensorboard <span class="keyword">import</span> SummaryWriter <span class="comment"># 用来输出</span></span><br></pre></td></tr></table></figure>
+<h3 id="1-2-logs文件打开方式"><a href="#1-2-logs文件打开方式" class="headerlink" title="1.2 logs文件打开方式"></a>1.2 logs文件打开方式</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tensorboard --logdir=事件文件名 --port=6007(指定端口)</span><br></pre></td></tr></table></figure>
+<h3 id="1-3-安装OpenCV2（超级快"><a href="#1-3-安装OpenCV2（超级快" class="headerlink" title="1.3 安装OpenCV2（超级快)"></a>1.3 安装OpenCV2（超级快)</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#安装opencv指令</span></span><br><span class="line">pip install  -i https://pypi.tuna.tsinghua.edu.cn/simple --trusted-host pypi.tuna.tsinghua.edu.cn opencv-python</span><br></pre></td></tr></table></figure>
+<h3 id="1-4-SummaryWriter输出"><a href="#1-4-SummaryWriter输出" class="headerlink" title="1.4 SummaryWriter输出"></a>1.4 SummaryWriter输出</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">writer = SummaryWriter(<span class="string">&quot;logs&quot;</span>) <span class="comment"># 创建logs，输出的日志文件文件夹</span></span><br><span class="line">writer.add_image(tag, tensor, step) <span class="comment"># 给放进去</span></span><br></pre></td></tr></table></figure>
+<p>Tips: 可以把一些scatter放在同一行上！！！ 其实就是放在同一个文件夹下一样简单</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">writer.add_scalar(<span class="string">&#x27;Loss/train&#x27;</span>, epoch_loss, epoch)</span><br><span class="line">writer.add_scalar(<span class="string">&#x27;Loss/val&#x27;</span>, val_loss, epoch)</span><br><span class="line">writer.add_scalar(<span class="string">&#x27;Accuracy/train&#x27;</span>, epoch_acc, epoch)</span><br><span class="line">writer.add_scalar(<span class="string">&#x27;Accuracy/Val&#x27;</span>, val_acc, epoch)</span><br></pre></td></tr></table></figure>
+<h2 id="二、Transforms"><a href="#二、Transforms" class="headerlink" title="二、Transforms"></a>二、Transforms</h2><p>作用：<strong>常用的图像预处理方法</strong></p>
+<p><img src="d605cf871bdc4e0a9c68e626210dd1f3.jpeg" alt="img"></p>
+<h3 id="2-1-导包"><a href="#2-1-导包" class="headerlink" title="2.1 导包"></a>2.1 导包</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> torchvision <span class="keyword">import</span> transforms</span><br></pre></td></tr></table></figure>
+<h3 id="2-2-如何使用"><a href="#2-2-如何使用" class="headerlink" title="2.2 如何使用"></a>2.2 如何使用</h3><p>创建ToTensor对象，传入要转换的picture，返回tensor数据类型的变量</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">imag_path = <span class="string">&#x27;hymenoptera_data/hymenoptera_data/train/ants/6743948_2b8c096dda.jpg&#x27;</span></span><br><span class="line">img = Image.<span class="built_in">open</span>(imag_path)</span><br><span class="line">tran = transforms.ToTensor() <span class="comment"># ToTensor是一个类</span></span><br><span class="line">img_tensor = tran(img) <span class="comment"># 调用call 函数,返回tensor</span></span><br></pre></td></tr></table></figure>
+<h3 id="2-3-为什么要使用"><a href="#2-3-为什么要使用" class="headerlink" title="2.3 为什么要使用"></a>2.3 为什么要使用</h3><p>因为他包装了一些神经网络的理论参数。</p>
+<h3 id="2-4-normalnize标准化"><a href="#2-4-normalnize标准化" class="headerlink" title="2.4 normalnize标准化"></a>2.4 normalnize标准化</h3><p>逐channel对图像标准化，加速模型收敛、改善性能、<strong>保留颜色信息</strong>，转换为tensor 数据类型后像素值在[0,1]之间，但仍会不均匀，标准化后处理在[-1, 1]之间，模型收敛更快，而且逐channel处理能够<strong>有效的保留颜色信息</strong>  </p>
+<p><strong>输入是tensor类型</strong> ！！</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Normalnize</span></span><br><span class="line"><span class="built_in">print</span>(img_tensor[<span class="number">0</span>][<span class="number">0</span>][<span class="number">0</span>])</span><br><span class="line">tran_norm = transforms.Normalize([<span class="number">0.5</span>, <span class="number">0.5</span>, <span class="number">0.5</span>], [<span class="number">0.5</span>, <span class="number">0.5</span>, <span class="number">0.5</span>]) <span class="comment"># 	标准化到[-1, 1]之间，输入的([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])前面是三个通道各自的均值，后面是3个通道各自的标准差，如果是自己的数据集，最好要自己统计这两个量</span></span><br><span class="line">img_norm = tran_norm(img_tensor)</span><br><span class="line"><span class="built_in">print</span>(img_norm[<span class="number">0</span>][<span class="number">0</span>][<span class="number">0</span>])</span><br><span class="line">writer.add_image(<span class="string">&quot;normal_pic&quot;</span>, img_norm)</span><br></pre></td></tr></table></figure>
+<h3 id="2-5-Resize和compose"><a href="#2-5-Resize和compose" class="headerlink" title="2.5 Resize和compose"></a>2.5 Resize和compose</h3><p>注意Resize<strong>输入是PIL输出也是PIL</strong>，在使用Compose的时候注意列表中元素的顺序（因为他就是按照列表的顺序来处理)</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Resize</span></span><br><span class="line">tran_resize = transforms.Resize([<span class="number">1080</span>, <span class="number">1080</span>])</span><br><span class="line">img_resize = tran_resize(img) <span class="comment"># 输出还是为PIL</span></span><br><span class="line">img_resize = tran(img_resize)  <span class="comment"># 转换为tensor</span></span><br><span class="line"><span class="built_in">print</span>(img_resize)</span><br><span class="line">writer.add_image(<span class="string">&quot;resize&quot;</span>, img_resize)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Compose</span></span><br><span class="line">tran_compose = transforms.Compose([tran_resize, tran, tran_norm])  <span class="comment"># 我的tran其实是totensor的实例对象</span></span><br><span class="line"><span class="comment"># 可以理解就是组合操作--&gt; 先裁剪然后转换为tensor最后标准化--&gt; 输入数据具体要求</span></span><br><span class="line">img_compose = tran_compose(img)  <span class="comment"># 先裁剪--&gt; 转换后为tensor--&gt; 标准化</span></span><br><span class="line">writer.add_image(<span class="string">&#x27;compose&#x27;</span>, img_compose)</span><br><span class="line">writer.close()</span><br></pre></td></tr></table></figure>
+<p> 总结：要关注输入和输出，多看官方文档、关注需要什么参数</p>
+<h2 id="三、Dataloader"><a href="#三、Dataloader" class="headerlink" title="三、Dataloader"></a>三、Dataloader</h2><p>首先，torch.Size([3, 32, 32])意思是3通道的32X32的图片，dataloader导入方式：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> torch.utils.data <span class="keyword">import</span> DataLoader</span><br></pre></td></tr></table></figure>
+<p>使用dataloader打包后：每个元素是batch的imgs和对应的targets组合的一个列表，比如下面就是一个元素：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">torch.Size([<span class="number">4</span>, <span class="number">3</span>, <span class="number">32</span>, <span class="number">32</span>]) <span class="comment"># 代表batch_size为4,3通道的32X32通道的图片</span></span><br><span class="line">tensor([<span class="number">2</span>, <span class="number">6</span>, <span class="number">1</span>, <span class="number">4</span>]) <span class="comment"># 输出targets是一个batch的target</span></span><br></pre></td></tr></table></figure>
+<p>使用drop_last为true即表示为省略不足一个batch的，shuttle表示乱序选择，num_workers是选择线程。</p>
+<p><strong>注意：</strong>既然使用dataloader打包后输出事件文件使用：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">writer.add_images(tag, imgs, step)</span><br><span class="line"><span class="comment"># 下面是未打包之前使用的,真的很细节 </span></span><br><span class="line">writer.add_image(tag, img, step)</span><br></pre></td></tr></table></figure>
+<p><strong>补充：</strong></p>
+<p>​    tensor数据类型介绍：严格来说有：float32、float64、int32、int64，但是tensor类的所有元素都是<strong>单一数据类型</strong>，不同也会自动转换；如果图片不是RGB图像，可以这样转换：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">image = image.convert(<span class="string">&#x27;RGB&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<p>​    Windows上使用dataloader的多线程num_work，出报错，就使用单线程就好</p>
+<h2 id="四、nn-module"><a href="#四、nn-module" class="headerlink" title="四、nn.module"></a>四、<strong>nn.module</strong></h2><p>必须继承父类(nn.module)，重写init、写forward函数，示例代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">modules</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>) -&gt; <span class="literal">None</span>:</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, <span class="built_in">input</span></span>):</span><br><span class="line">        output = <span class="built_in">input</span> + <span class="number">1</span></span><br><span class="line">        <span class="keyword">return</span> output</span><br><span class="line"></span><br><span class="line">model = modules()</span><br><span class="line"><span class="built_in">input</span> = tensor(<span class="number">1.0</span>)</span><br><span class="line">output = model.forward(<span class="built_in">input</span>)</span><br><span class="line"><span class="built_in">print</span>(output)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="五、Convolution"><a href="#五、Convolution" class="headerlink" title="五、Convolution"></a>五、Convolution</h2><h3 id="5-1卷积到底起到什么作用："><a href="#5-1卷积到底起到什么作用：" class="headerlink" title="5.1卷积到底起到什么作用："></a>5.1<strong>卷积到底起到什么作用：</strong></h3><p>​    卷积操作就是用一个可移动的小窗口来<strong>提取图像中的特征</strong>，这个操作可以捕捉到<strong>图像中的局部特征</strong>而<strong>不受其位置的影响</strong></p>
+<p>​    但，更清楚的说明是理解为用一个更小的窗口(特征)，或者说我我们需要的，这个作为过滤器，挨个滑动去匹配，滑动的每个位置都会计算出一个值，最终匹配程度最高的地方计算出的置同样也会最高，这样也就提取出特征了，而不会受到位置的影响</p>
+<p><img src="image-20240725184307535.png" alt="image-20240725184307535"></p>
+<h3 id="5-2与信号处理中卷积的对比理解"><a href="#5-2与信号处理中卷积的对比理解" class="headerlink" title="5.2与信号处理中卷积的对比理解"></a>5.2<strong>与信号处理中卷积的对比理解</strong></h3><p>​    信号处理的卷积：把过滤器g函数反转和平移与f相乘得到的积的积分</p>
+<script type="math/tex; mode=display">
+f(t)*g(t)=\int_{-\propto}^{\propto}f(τ)g(t-τ)dτ</script><p>​    而深度学习中卷积其实是互相关：就是两个函数之间的滑动点积，过滤器不需要反转，其实就是逐元素的乘法和加法。</p>
+<ol>
+<li><strong>artihmetic：</strong></li>
+</ol>
+<p>​    torch.nn.functional直接提供激活函数、损失函数、卷积等操作，不需要创建额外的层</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 就是当做一个函数包使用吧</span></span><br><span class="line"><span class="keyword">import</span> torch.nn.functional <span class="keyword">as</span> F</span><br></pre></td></tr></table></figure>
+<p>​    注意看api， conv2的input、weight都是有要求的，输入要进行转换</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">input</span> = torch.reshape(<span class="built_in">input</span>,[<span class="number">1</span>, <span class="number">1</span>, <span class="number">5</span>, <span class="number">5</span>])</span><br><span class="line">kernel = torch.reshape(kernel,[<span class="number">1</span>, <span class="number">1</span>, <span class="number">3</span>, <span class="number">3</span>])</span><br></pre></td></tr></table></figure>
+<p><img src="image-20240718220816083.png" alt="image-20240718220816083"></p>
+<p>​    stride—步长， padding—填充项(默认为0），kernel_size是在网络过程调整，所以直接使用functional特别注意输入转换。</p>
+<ol>
+<li><strong>layers</strong></li>
+</ol>
+<p>​    使用torch.nn里面的层，创建卷积层来执行卷积操作，创建子模块一定要继承Module。</p>
+<p>​    conv1是2维卷积操作的实例对象，配置好了相关参数，也就是一个卷积层</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> torch.nn <span class="keyword">import</span> Conv2d</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">model</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="comment"># 创建一个卷积层</span></span><br><span class="line">        <span class="variable language_">self</span>.conv1 = Conv2d(in_channels=<span class="number">3</span>, out_channels=<span class="number">6</span>, kernel_size=<span class="number">3</span>, stride=<span class="number">1</span>, padding=<span class="number">0</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>​    Module默认实现了<strong>call</strong>函数，并且在<strong>call</strong>函数里面调用forward函数，所以子类也就可以直接m1(imgs)调用forward函数，这里是直接返回卷积后的<strong>特征图</strong>。</p>
+<p>补充：</p>
+<p>​    ‘./‘表示当前目录，’../‘表示上一级目录，比如上一级目录imags下的1.jpg：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">input</span> = <span class="string">&#x27;../imags/1.jpg&#x27;</span></span><br></pre></td></tr></table></figure>
+<p>​    torch.randn—&gt;n是normalnize的缩写，就是生成[-1,1]之间标准化的随机数</p>
+<p>​    torch.randperm —&gt; permutation是排列的意思，就是生成排列的随机数</p>
+<h2 id="六、最大池化-maxpooling"><a href="#六、最大池化-maxpooling" class="headerlink" title="六、最大池化(maxpooling)"></a>六、最大池化(maxpooling)</h2><p>​    最大池化也称为下采样，过程和卷积类似，但是他的窗口没有权重，所以是计算窗口内的原始数据中的最大值，作用主要是<strong>保留输入的特征，并且减少输入（特征张量）的大小</strong>，不会改变通道数。</p>
+<p>​    另外，最大池化能提取特定窗口的最大数据，无论数据在哪个位置，所以也就<strong>缓解了对位置的敏感性</strong>：比如在图像检测里面，使用最大池化能够使模型更关注行人，减少位置对任务的影响</p>
+<p>​    不太恰当的例子：视频的分辨率1080—&gt;最大池化—&gt;720，视频模糊了很多，但是依旧还能传达重要的信息同时体积变小了很多，传输速度变快了很多。</p>
+<p>​    汇聚层的输出通道数与输入通道数相同</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">model</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="comment"># ceil_mode向上取整</span></span><br><span class="line">        <span class="variable language_">self</span>.maxpool1 = MaxPool2d(kernel_size=<span class="number">2</span>, ceil_mode=<span class="literal">False</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 重写后，会在call里面调用</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, <span class="built_in">input</span></span>):</span><br><span class="line">        output = <span class="variable language_">self</span>.maxpool1(<span class="built_in">input</span>)</span><br><span class="line">        <span class="keyword">return</span> output</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="七、搭建一个处理CIFAR-10的神经网络："><a href="#七、搭建一个处理CIFAR-10的神经网络：" class="headerlink" title="七、搭建一个处理CIFAR-10的神经网络："></a>七、<strong>搭建一个处理CIFAR-10的神经网络：</strong></h2><ul>
+<li><p>torch.flatten是直接展开为一维张量，而reshape是指定形状，如果不确定可以补一个-1，环境自动确定</p>
+</li>
+<li><p>非线性激活的relu函数中inplace参数，给true表示直接改变输入input</p>
+</li>
+<li><p>线性层Linear的三个参数:(in_features, out_features, bias)就跟DNN理解的一样，就是全连接层</p>
+</li>
+</ul>
+<p><img src="C:\Users\zskgq\AppData\Roaming\Typora\typora-user-images\image-20240721190918403.png" alt="image-20240721190918403" /></p>
+<h3 id="7-1-网络结构："><a href="#7-1-网络结构：" class="headerlink" title="7.1 网络结构："></a><strong>7.1 网络结构：</strong></h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">zsk</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="variable language_">self</span>.modle1 = Sequential(</span><br><span class="line">            Conv2d(<span class="number">3</span>, <span class="number">32</span>, <span class="number">5</span>, padding=<span class="number">2</span>),</span><br><span class="line">            MaxPool2d(<span class="number">2</span>),</span><br><span class="line">            Conv2d(<span class="number">32</span>, <span class="number">32</span>, <span class="number">5</span>, padding=<span class="number">2</span>),</span><br><span class="line">            MaxPool2d(<span class="number">2</span>),</span><br><span class="line">            Conv2d(<span class="number">32</span>, <span class="number">64</span>, <span class="number">5</span>, padding=<span class="number">2</span>),</span><br><span class="line">            MaxPool2d(<span class="number">2</span>),</span><br><span class="line">            Flatten(),</span><br><span class="line">            Linear(<span class="number">1024</span>, <span class="number">64</span>),</span><br><span class="line">            Linear(<span class="number">64</span>, <span class="number">10</span>)</span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        output = <span class="variable language_">self</span>.modle1(x)</span><br><span class="line">        <span class="keyword">return</span> output</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>​    使用Sequential，会按照顺序建立网络，简洁书写，同时可以<strong>使用writer.add_graph()可视化网络结构</strong></p>
+<h3 id="7-2-损失与优化器："><a href="#7-2-损失与优化器：" class="headerlink" title="7.2 损失与优化器："></a>7.2 损失与优化器：</h3><p>​    了解常见损失就好，交叉熵特别适合使用于分类问题，但是他是算的<strong>一个batch的损失</strong>，损失函数的对象有backward函数，用来计算反向传播的梯度</p>
+<p>​    梯度下降的时候—&gt;注意每一次要清零梯度， 可以直接使用优化器的step来更新参数。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> epoch <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">20</span>):</span><br><span class="line">    sum_loss = <span class="number">0</span></span><br><span class="line">    <span class="keyword">for</span> data <span class="keyword">in</span> dataloader:</span><br><span class="line">        imgs, targets = data</span><br><span class="line">        outputs = wys(imgs)</span><br><span class="line">        result_loss = loss(outputs, targets)</span><br><span class="line">        <span class="comment"># 梯度清零</span></span><br><span class="line">        optim.zero_grad()</span><br><span class="line">        <span class="comment"># 反向传播计算梯度</span></span><br><span class="line">        result_loss.backward()</span><br><span class="line">        <span class="comment"># 更新梯度</span></span><br><span class="line">        optim.step()</span><br><span class="line">        <span class="comment"># 计算每轮损失和</span></span><br><span class="line">        sum_loss += result_loss</span><br><span class="line">    <span class="built_in">print</span>(sum_loss)</span><br></pre></td></tr></table></figure>
+<h3 id="7-3-对现有模型进行修改和调整："><a href="#7-3-对现有模型进行修改和调整：" class="headerlink" title="7.3 对现有模型进行修改和调整："></a>7.3 对现有模型进行修改和调整：</h3><p>​    直接是调包，要会看官方文档诶！！！ 土堆教程里面的使用vgg16的参数是pretrained=true(false)，但是我使用Ctrl+P没有参数提示，看半天官方文档才发现是这个参数已经被弃用，使用的weights</p>
+<p><img src="image-20240722143517805.png" alt="image-20240722143517805"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 创建模型</span></span><br><span class="line">vgg16_false = vgg16(weights=<span class="string">&#x27;DEFAULT&#x27;</span>) <span class="comment"># 使用初始化的参数，其实就是纯网络结构</span></span><br><span class="line">vgg16_true = vgg16(weights=<span class="string">&#x27;IMAGENET1K_V1&#x27;</span>) <span class="comment"># 网络结构 + 在另外一个数据集上预训练过的参数</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 在这个层里面添加模块，做为10分类</span></span><br><span class="line">vgg16_true.classifier.add_module(<span class="string">&#x27;zsk&#x27;</span>, nn.Linear(<span class="number">1000</span>, <span class="number">10</span>))</span><br><span class="line"><span class="built_in">print</span>(vgg16_true)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 直接修改第7层结构，输出为10分类</span></span><br><span class="line">vgg16_false.classifier[<span class="number">6</span>] = nn.Linear(<span class="number">4096</span>, <span class="number">10</span>)</span><br><span class="line"><span class="built_in">print</span>(vgg16_false)</span><br></pre></td></tr></table></figure>
+<h3 id="7-4-模型的保存和加载："><a href="#7-4-模型的保存和加载：" class="headerlink" title="7.4 模型的保存和加载："></a>7.4 模型的保存和加载：</h3><p><strong>模型保存：</strong></p>
+<p>​    一共两种方式，但都是使用torch.save<strong>，区别是保存的对象是模型还是模型参数</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 保存方式1，同时保存模型结构和模型参数--&gt;如果是自己定义的模型，使用load加载时需要导入模型类</span></span><br><span class="line">torch.save(vgg16_false, <span class="string">&#x27;vgg16_false.pth&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 保存方式2，只保存模型参数，加载时要先建立模型</span></span><br><span class="line">torch.save(vgg16_false.state_dict(), <span class="string">&#x27;vgg16_false2.pth&#x27;</span>)</span><br></pre></td></tr></table></figure>
+<p><strong>模型加载：</strong></p>
+<p>​    加载同样也是两种方式，使用方式1保存的模型直接只用torch.load()加载，如果是pytorch中<strong>有的不需要导入模型，否则需要导入。</strong></p>
+<p>​    使用方式2保存的模型，直接使用torch.load()加载的是模型参数，<strong>得到一个OrderedDict也就保存参数的字典</strong>，所以正确方式是先建立模型结构，然后使用load_state_dict()加载参数到模型</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 加载的方式2：只有参数，所以需要先建立</span></span><br><span class="line">model2 = torch.load(<span class="string">&#x27;vgg16_false2.pth&#x27;</span>) <span class="comment"># 只保存参数，所以model2就是一个参数字典</span></span><br><span class="line"><span class="built_in">print</span>(model2) <span class="comment"># 这里加载的就是一个参数字典</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 所以先建议model，然后读入参数</span></span><br><span class="line">model3 = torchvision.models.vgg16(weights=<span class="string">&#x27;DEFAULT&#x27;</span>)</span><br><span class="line">model3.load_state_dict(model2)</span><br><span class="line"><span class="built_in">print</span>(model3)</span><br></pre></td></tr></table></figure>
+<h3 id="7-5-模型完整训练流程："><a href="#7-5-模型完整训练流程：" class="headerlink" title="7.5 模型完整训练流程："></a>7.5 模型完整训练流程：</h3><p>​    数据加载与处理—&gt; 模型搭建 —&gt; 模型训练与验证(每一轮都验证一次)—&gt;模型的保存(刚学的)</p>
+<p>​    数据处理：先加载数据(torchvision.datasets、torch.utils.data.Dataloader)、然后归一化什么的处理(torchvision.tramsforms)</p>
+<p>​    模型搭建：按照别人网络结构搭建就行哈哈哈哈哈</p>
+<p>​    模型训练：创建网络—&gt; 确定损失函数 —&gt;确定优化器 —&gt;开始训练和验证(每个epoch都要验证和保存模型)</p>
+<p>训练的主代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> data <span class="keyword">in</span> train_dataloader:</span><br><span class="line">    imgs, targets = data</span><br><span class="line">    outputs = m(imgs)</span><br><span class="line">    <span class="comment"># 计算损失</span></span><br><span class="line">    loss = loss_fn(outputs, targets)</span><br><span class="line">    optimizer.zero_grad() <span class="comment"># 梯度清零</span></span><br><span class="line">    loss.backward() <span class="comment"># 计算反向的梯度</span></span><br><span class="line">    optimizer.step() <span class="comment"># 更新参数</span></span><br><span class="line">    cnt_train += <span class="number">1</span></span><br><span class="line">    <span class="keyword">if</span> cnt_train % <span class="number">100</span> == <span class="number">0</span>:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;第&#123;&#125;次训练的损失为：&#123;&#125;&quot;</span>.<span class="built_in">format</span>(cnt_train, loss.item())) <span class="comment"># 使用item属性即loss的纯数值</span></span><br><span class="line">        writer.add_scalar(<span class="string">&#x27;train_loss&#x27;</span>, loss.item(), cnt_train) <span class="comment"># 训练损失曲线</span></span><br></pre></td></tr></table></figure>
+<p>​    所以，<strong>记录每一次训练(一个batch)</strong>，可以用来画损失曲线并不是没用，跟DNN中训练次数一样滴；即每个batch就是训练一次，每次都会计算一个损失，根据这个来画训练的损失曲线！！！</p>
+<p>测试的主代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">with</span> torch.no_grad():  <span class="comment"># 在没有梯度状况下计算</span></span><br><span class="line">       sum_loss = <span class="number">0</span></span><br><span class="line">       total_acc = <span class="number">0</span></span><br><span class="line">       <span class="keyword">for</span> data <span class="keyword">in</span> test_dataloader:</span><br><span class="line">           imgs, targets = data</span><br><span class="line">           outputs = m(imgs)</span><br><span class="line">           <span class="comment"># 预测正确的个数</span></span><br><span class="line">           accurate = (outputs.argmax(<span class="number">1</span>)==targets).<span class="built_in">sum</span>() <span class="comment"># 前面是布尔列表，求和时true为1， false处理为0，也就是在计算这一个batch的正确个数</span></span><br><span class="line">           total_acc += accurate <span class="comment"># 存起来</span></span><br><span class="line">           loss = loss_fn(outputs, targets)</span><br><span class="line">           sum_loss += loss.item()</span><br><span class="line">   cnt_test += <span class="number">1</span></span><br><span class="line">   acc = total_acc / test_data_size  <span class="comment"># 计算这轮的准确率</span></span><br><span class="line">   <span class="built_in">print</span>(<span class="string">&#x27;第&#123;&#125;次测试的准确率为&#123;&#125;&#x27;</span>.<span class="built_in">format</span>(cnt_test, acc))</span><br><span class="line">   <span class="built_in">print</span>(<span class="string">&quot;第&#123;&#125;次测试，总体的损失值为：&#123;&#125;&quot;</span>.<span class="built_in">format</span>(cnt_test, sum_loss))</span><br><span class="line">   writer.add_scalar(<span class="string">&#x27;test_loss&#x27;</span>, sum_loss, cnt_test)</span><br><span class="line">   writer.add_scalar(<span class="string">&#x27;test_acc&#x27;</span>, acc, cnt_test)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="7-6-细节注意："><a href="#7-6-细节注意：" class="headerlink" title="7.6 细节注意："></a>7.6 <strong>细节注意：</strong></h3><p>​    不需要计算梯度，使用with torch.no_grad()</p>
+<p>​    argmax函数，参数给1表示取一行中最大数的下标，参数给0就取一列中最大数的下标，然后就可以直接使用‘==’判断一下，在代码中就是从输出的多维列表中，每一行找到预测概率最大的下标，然后依次与targets对比，相等为true，然后使用sum求和布尔列表，true为1false为0，结果就是这一个batch预测对的个数，然后统计一轮正确个数。</p>
+<p>​    m.train()或者m.eval()的设置只对特定的层起效</p>
+<h3 id="7-7-使用cuda加速："><a href="#7-7-使用cuda加速：" class="headerlink" title="7.7 使用cuda加速："></a>7.7 使用cuda加速：</h3><p>方式1：</p>
+<p>​    更改：网络模型、数据(输入、标签)、损失函数；就使用.cuda()就OK，麻烦的就是要用if这样的结构来保证不会出错，而且是每个地方都必须这样</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> torch.cuda.is_available():</span><br><span class="line">	imgs = imgs.cuda()</span><br><span class="line">	targets = targets.cuda()</span><br></pre></td></tr></table></figure>
+<p>方式二：</p>
+<p>​    同上，需要加速的地方—&gt;网络模型、损失函数、数据，使用.to（device）就行，上面直接指定设备。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">device = torch.device(<span class="string">&#x27;cuda&#x27;</span> <span class="keyword">if</span> torch.cuda.is_available() <span class="keyword">else</span> <span class="string">&#x27;cpu&#x27;</span>)</span><br><span class="line"><span class="comment"># 然后依次网络模型、损失函数、数据都.to(device)一下，但是数据to(device)之后必须返回imgs，targets，其他的不用</span></span><br></pre></td></tr></table></figure>
+<h2 id="八、torch和numpy的互换"><a href="#八、torch和numpy的互换" class="headerlink" title="八、torch和numpy的互换"></a>八、torch和numpy的互换</h2><p>​    torch.from_numpy:把一个narray转换为torch的tensor类型</p>
+<p>​    torch.numpy()：把一个tensor转换为numpy类型。</p>
+<h2 id="九、torch的计算图"><a href="#九、torch的计算图" class="headerlink" title="九、torch的计算图"></a>九、torch的计算图</h2><p>​    pytorch是一个自动微分框架，会记录每一步的操作，构建一个计算图，主要的作用就是自动计算梯度，省去自己推导复杂的导数。</p>
+<p>​    但是！pytorch的计算图依赖于每个操作的中间结果，如果中间结果被改掉，就无法追踪这些改动，计算梯度的时候就会出错，下面的代码就直接会报错。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">x = torch.tensor([-<span class="number">1.0</span>, <span class="number">2.0</span>, <span class="number">3.0</span>], requires_grad=<span class="literal">True</span>)</span><br><span class="line">y = F.relu(x)  <span class="comment"># 非原地操作，创建了新的 y</span></span><br><span class="line">z = F.relu(x, inplace=<span class="literal">True</span>)  <span class="comment"># 原地操作，直接修改了 x</span></span><br></pre></td></tr></table></figure>
+<p>​    在做残差连接的时候遇到过一次这个问题，我<strong>直接使用y += x</strong>，会出现计算图中缓存的变量被修改的报错，当时报错的源代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, X</span>):</span><br><span class="line">        <span class="comment"># relu last 的方式</span></span><br><span class="line">        <span class="comment"># 完成第一次卷积，第一次批量归一化和第一次relu操作</span></span><br><span class="line">        Y = F.relu(<span class="variable language_">self</span>.bn1(<span class="variable language_">self</span>.conv1(X)))</span><br><span class="line">        <span class="comment"># 完成第2次卷积，第2次批量归一化 + relu，直接把relu放在最后。</span></span><br><span class="line">        Y = F.relu(<span class="variable language_">self</span>.bn2(<span class="variable language_">self</span>.conv2(Y)))</span><br><span class="line">        <span class="keyword">if</span> <span class="variable language_">self</span>.conv3:</span><br><span class="line">            X = <span class="variable language_">self</span>.conv3(X)</span><br><span class="line">        <span class="comment"># 计算f(x)+x</span></span><br><span class="line">        Y += X</span><br><span class="line">        <span class="keyword">return</span> Y</span><br></pre></td></tr></table></figure>
+<p>​    但只要修改一句残差的add为</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Y = Y + X</span><br></pre></td></tr></table></figure>
+<p>​    <strong>就不会出现反向传播求解梯度时报错</strong>，gpt说是 += 是原地修改，也就是会导致计算图中的版本问题，然后我就纳闷呐，我另外一种方式为什么没有问题，渐渐的明白就是说，因为我执行的次序不一样，后面这种batchnorm在最后的方式，使用+=是对一个在计算图中可追踪的张量操作，所以不会有问题。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Y = <span class="variable language_">self</span>.bn1(<span class="variable language_">self</span>.conv1(F.relu(X)))</span><br><span class="line">Y = <span class="variable language_">self</span>.bn2(<span class="variable language_">self</span>.conv2(F.relu(Y)))</span><br><span class="line">Y += X</span><br></pre></td></tr></table></figure>
+<h2 id="十、Resnet的一点体会"><a href="#十、Resnet的一点体会" class="headerlink" title="十、Resnet的一点体会"></a>十、Resnet的一点体会</h2><p>​    采用Conv → BatchNorm → ReLU这样的结构，卷积和归一化完成后才进行非线性激活，梯度的传播路径更加完整。这种设计保留了更多的信息流动，梯度的幅度可能更大，因此需要更小的学习率以避免过大的权重更新导致不稳定。</p>
+<p>​    ReLU→ Conv→ BatchNorm 效果和原始的结果基本相同，这种次序的修改对模型整体的效果影响不大，先进行relu其实是削减了部分梯度，然后进行层归一化可能使得整体的梯度会更加平滑，所以使用与原baseline使用相同的学习率不会出现上面的梯度爆炸情况。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://worlds3.github.io">5ha</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://worlds3.github.io/2024/07/20/pytorch%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">https://worlds3.github.io/2024/07/20/pytorch%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://worlds3.github.io" target="_blank">5ha的个人空间</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/pytorch/">pytorch</a></div><div class="post-share"><div class="social-share" data-image="/2024/07/20/pytorch%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/torch.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2024/08/11/%E7%BB%8F%E5%85%B8CNN%E6%A2%B3%E7%90%86/" title="经典CNN梳理"><img class="cover" src="/2024/08/11/%E7%BB%8F%E5%85%B8CNN%E6%A2%B3%E7%90%86/image-20240810212320312.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">经典CNN梳理</div></div><div class="info-2"><div class="info-item-1">一、前置基础：深度学习这块，改来改去就是数据和model在改，数据进行一些处理后放进原模型中效果更好则就是idea，或者数据不动，改动模型的一些小结构效果更好又是一个idea，从cifar10分类任务引入卷积神经网络，首先回顾一下卷积神经网络中一些基础的概念。 1.1 感受野：指在输入图像上，某层的一个神经元能看到或相应区域大小，换句话说就是在网络最初输入上看到的像素大小。 1.2 作用：感受野越大，在输入层上看到的区域就越大，可以捕捉到更多的全局特征，也就进而会影响到卷积层或者整个网络的设计架构。 1.3 卷积层(Convolutional Layer)：卷积到底起到什么作用：卷积操作就是用一个可移动的小窗口来提取图像中的特征，这个操作可以捕捉到图像中的局部特征而不受其位置的影响 但更清楚的说明是理解为用一个更小的窗口(特征)，或者说我我们需要的结果这个作为过滤器，挨个滑动去匹配，滑动的每个位置都会计算出一个值，最终匹配程度最高的地方计算出的置同样也会最高，这样也就提取出特征了，而不会受到位置的影响 所以，我觉得就能理解为什么卷积核的英文名是filter，过滤器；再举个我觉得比...</div></div></div></a><a class="pagination-related" href="/2023/11/18/conda%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" title="conda常用命令"><img class="cover" src="/2023/11/18/conda%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/cover.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">conda常用命令</div></div><div class="info-2"><div class="info-item-1">1. 环境管理1234567891011# 创建并激活环境conda create -n py_stu python=3.9   # -n 后是环境名称conda activate py_stu  # 激活py_stu这个环境conda deactivate # 退回到base# 删除环境conda env remove -n py_stu# 查看已有环境conda info -econda env list 2. 环境信息123456789101112131415161718192021# 查看 conda 版本conda --version# 查看 Python 版本（当前环境）python --version# 查看 conda 配置信息conda info# 设置国内镜像源（加速下载，以清华源为例）conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/conda config --add channels https://mirrors.tuna.tsingh...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2024/10/29/pytorch%E4%BD%BF%E7%94%A8%E7%BB%86%E8%8A%82%E6%9D%82%E8%B0%88/" title="pytorch使用细节杂谈"><img class="cover" src="/2024/10/29/pytorch%E4%BD%BF%E7%94%A8%E7%BB%86%E8%8A%82%E6%9D%82%E8%B0%88/torch.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-10-29</div><div class="info-item-2">pytorch使用细节杂谈</div></div><div class="info-2"><div class="info-item-1">矩阵相加：​    在numpy中(2, 256) + (1, 256)，会把(1, 256)直接复制上面一行变成(2, 256)然后相加，也就是广播机制，也很合理就是直接扩展维度小的相加，在XW+b中用的很多，因为b就是(1, size)的行向量要和前面做相加操作 ​    torch.long()即向下取整 实例和类区别：​    实例化的self.linear，就直接调用就好，为什我还傻乎乎的想着输入的y.reshape((-1, y.shape[-1]))是一个（时间步数*批量大小， 隐藏单元数）的二维张量，这明明和前面定义的线性层不一致  参数的requires_grad:​    网络中的参数可以设置requires_grad为true还是false，要同时设置这个为true，以及将他注册到优化器中，才会在训练过程中更新参数pytorch中模型参数requires_grad的含义 death_函数​    detach_是用来防止梯度积累(不是数值上的爆炸和消失)，是从计算量和内存的角度考虑，因为在前向传播过程中会保存一些相关的信息，以用来反向传播，如果不分离出来每次...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="lv-container" data-id="city" data-uid="MTAyMC82MTA0Ny8zNzUxNw=="></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">5ha</div><div class="author-info-description">得之坦然，失之淡然</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">13</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/worlds3"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/worlds3" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:vmerluckycat5@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎光临我的博客！UESTC研0，热爱AI，不定期更新学习/科研/生活等等。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81Tensorboard"><span class="toc-text">一、Tensorboard</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1%E5%AF%BC%E5%85%A5%E6%96%B9%E5%BC%8F"><span class="toc-text">1.1导入方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-logs%E6%96%87%E4%BB%B6%E6%89%93%E5%BC%80%E6%96%B9%E5%BC%8F"><span class="toc-text">1.2 logs文件打开方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E5%AE%89%E8%A3%85OpenCV2%EF%BC%88%E8%B6%85%E7%BA%A7%E5%BF%AB"><span class="toc-text">1.3 安装OpenCV2（超级快)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-SummaryWriter%E8%BE%93%E5%87%BA"><span class="toc-text">1.4 SummaryWriter输出</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81Transforms"><span class="toc-text">二、Transforms</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%AF%BC%E5%8C%85"><span class="toc-text">2.1 导包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8"><span class="toc-text">2.2 如何使用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E4%BD%BF%E7%94%A8"><span class="toc-text">2.3 为什么要使用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-normalnize%E6%A0%87%E5%87%86%E5%8C%96"><span class="toc-text">2.4 normalnize标准化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-Resize%E5%92%8Ccompose"><span class="toc-text">2.5 Resize和compose</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81Dataloader"><span class="toc-text">三、Dataloader</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81nn-module"><span class="toc-text">四、nn.module</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81Convolution"><span class="toc-text">五、Convolution</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1%E5%8D%B7%E7%A7%AF%E5%88%B0%E5%BA%95%E8%B5%B7%E5%88%B0%E4%BB%80%E4%B9%88%E4%BD%9C%E7%94%A8%EF%BC%9A"><span class="toc-text">5.1卷积到底起到什么作用：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2%E4%B8%8E%E4%BF%A1%E5%8F%B7%E5%A4%84%E7%90%86%E4%B8%AD%E5%8D%B7%E7%A7%AF%E7%9A%84%E5%AF%B9%E6%AF%94%E7%90%86%E8%A7%A3"><span class="toc-text">5.2与信号处理中卷积的对比理解</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E6%9C%80%E5%A4%A7%E6%B1%A0%E5%8C%96-maxpooling"><span class="toc-text">六、最大池化(maxpooling)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%90%AD%E5%BB%BA%E4%B8%80%E4%B8%AA%E5%A4%84%E7%90%86CIFAR-10%E7%9A%84%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%9A"><span class="toc-text">七、搭建一个处理CIFAR-10的神经网络：</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E7%BD%91%E7%BB%9C%E7%BB%93%E6%9E%84%EF%BC%9A"><span class="toc-text">7.1 网络结构：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E6%8D%9F%E5%A4%B1%E4%B8%8E%E4%BC%98%E5%8C%96%E5%99%A8%EF%BC%9A"><span class="toc-text">7.2 损失与优化器：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E5%AF%B9%E7%8E%B0%E6%9C%89%E6%A8%A1%E5%9E%8B%E8%BF%9B%E8%A1%8C%E4%BF%AE%E6%94%B9%E5%92%8C%E8%B0%83%E6%95%B4%EF%BC%9A"><span class="toc-text">7.3 对现有模型进行修改和调整：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-%E6%A8%A1%E5%9E%8B%E7%9A%84%E4%BF%9D%E5%AD%98%E5%92%8C%E5%8A%A0%E8%BD%BD%EF%BC%9A"><span class="toc-text">7.4 模型的保存和加载：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-5-%E6%A8%A1%E5%9E%8B%E5%AE%8C%E6%95%B4%E8%AE%AD%E7%BB%83%E6%B5%81%E7%A8%8B%EF%BC%9A"><span class="toc-text">7.5 模型完整训练流程：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-6-%E7%BB%86%E8%8A%82%E6%B3%A8%E6%84%8F%EF%BC%9A"><span class="toc-text">7.6 细节注意：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-7-%E4%BD%BF%E7%94%A8cuda%E5%8A%A0%E9%80%9F%EF%BC%9A"><span class="toc-text">7.7 使用cuda加速：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81torch%E5%92%8Cnumpy%E7%9A%84%E4%BA%92%E6%8D%A2"><span class="toc-text">八、torch和numpy的互换</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B9%9D%E3%80%81torch%E7%9A%84%E8%AE%A1%E7%AE%97%E5%9B%BE"><span class="toc-text">九、torch的计算图</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%81%E3%80%81Resnet%E7%9A%84%E4%B8%80%E7%82%B9%E4%BD%93%E4%BC%9A"><span class="toc-text">十、Resnet的一点体会</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/01/16/DIY%E5%BE%AE%E8%B0%83%E4%B8%80%E4%B8%AA%E5%BE%AE%E4%BF%A1%E5%88%86%E8%BA%AB/" title="DIY微调一个微信分身"><img src="/2026/01/16/DIY%E5%BE%AE%E8%B0%83%E4%B8%80%E4%B8%AA%E5%BE%AE%E4%BF%A1%E5%88%86%E8%BA%AB/%E5%9B%BE%E7%89%8712.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="DIY微调一个微信分身"/></a><div class="content"><a class="title" href="/2026/01/16/DIY%E5%BE%AE%E8%B0%83%E4%B8%80%E4%B8%AA%E5%BE%AE%E4%BF%A1%E5%88%86%E8%BA%AB/" title="DIY微调一个微信分身">DIY微调一个微信分身</a><time datetime="2026-01-16T13:13:55.000Z" title="发表于 2026-01-16 21:13:55">2026-01-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/12/30/CPT-SFT-DPO%E5%AE%9E%E6%88%98/" title="CPT-SFT-DPO实战"><img src="/2025/12/30/CPT-SFT-DPO%E5%AE%9E%E6%88%98/cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="CPT-SFT-DPO实战"/></a><div class="content"><a class="title" href="/2025/12/30/CPT-SFT-DPO%E5%AE%9E%E6%88%98/" title="CPT-SFT-DPO实战">CPT-SFT-DPO实战</a><time datetime="2025-12-30T12:50:36.000Z" title="发表于 2025-12-30 20:50:36">2025-12-30</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/12/29/Pyinstaller%E6%89%93%E5%8C%85YOLOv11%E5%92%8CPyQt5%E9%A1%B9%E7%9B%AE%E4%B8%BAexe%E6%96%87%E4%BB%B6/" title="Pyinstaller打包YOLOv11和PyQt5项目为exe文件">Pyinstaller打包YOLOv11和PyQt5项目为exe文件</a><time datetime="2025-12-29T03:40:05.000Z" title="发表于 2025-12-29 11:40:05">2025-12-29</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/12/28/YOLO%E5%BC%95%E5%85%A5%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%A8%A1%E5%9D%97/" title="YOLO引入注意力模块"><img src="/2025/12/28/YOLO%E5%BC%95%E5%85%A5%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%A8%A1%E5%9D%97/cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="YOLO引入注意力模块"/></a><div class="content"><a class="title" href="/2025/12/28/YOLO%E5%BC%95%E5%85%A5%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%A8%A1%E5%9D%97/" title="YOLO引入注意力模块">YOLO引入注意力模块</a><time datetime="2025-12-28T14:32:50.000Z" title="发表于 2025-12-28 22:32:50">2025-12-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/11/18/LLM%E5%BE%AE%E8%B0%83%E7%90%86%E8%AE%BA%E6%95%B4%E7%90%86/" title="LLM微调理论整理"><img src="/2025/11/18/LLM%E5%BE%AE%E8%B0%83%E7%90%86%E8%AE%BA%E6%95%B4%E7%90%86/image-20251017134429782.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="LLM微调理论整理"/></a><div class="content"><a class="title" href="/2025/11/18/LLM%E5%BE%AE%E8%B0%83%E7%90%86%E8%AE%BA%E6%95%B4%E7%90%86/" title="LLM微调理论整理">LLM微调理论整理</a><time datetime="2025-11-17T16:13:40.000Z" title="发表于 2025-11-18 00:13:40">2025-11-18</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(/2024/07/20/pytorch%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/torch.png);"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 5ha</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.2</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.2"></script><script src="/js/main.js?v=5.5.2"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.0.0/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+
+  const loadLivere = (el, path) => {
+    window.livereOptions = {
+      refer: path || location.pathname
+    }
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyLivere = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    if (typeof LivereTower === 'object') window.LivereTower.init()
+    else {
+      (function(d, s) {
+          var j, e = d.getElementsByTagName(s)[0];
+          if (typeof LivereTower === 'function') { return; }
+          j = d.createElement(s);
+          j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+          j.async = true;
+          e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    }
+  }
+
+  if (isShuoshuo) {
+    'Livere' === 'Livere'
+      ? window.shuoshuoComment = { loadComment: loadLivere }
+      : window.loadOtherComment = loadLivere
+    return
+  }
+
+  if ('Livere' === 'Livere' || !false) {
+    if (false) btf.loadComment(document.getElementById('lv-container'), loadLivere)
+    else loadLivere()
+  } else {
+    window.loadOtherComment = loadLivere
+  }
+})()</script></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-ribbon.min.js" size="230" alpha="0.6" zIndex="-1" mobile="false" data-click="false"></script><script async data-pjax src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.2"></script></div></div></body></html>
