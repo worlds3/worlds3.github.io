@@ -1,0 +1,597 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>LLM微调代码实战-甄嬛机器人 | 5ha的个人空间</title><meta name="author" content="5ha"><meta name="copyright" content="5ha"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="实战笔记：基于 Qwen-7B LoRA 微调“Chat-甄嬛”🧠 核心思路与心得（写在前面）在开始敲代码之前，先整理一下关于 LLM 微调的个人理解。不同于图像分类任务（目标纯粹是追求 Accuracy 或 Precision&#x2F;Recall），LLM 微调是一个“半艺术半工程”的过程：  量化指标仅供参考：Loss、PPL（困惑度）、BLEU 等指标只能反映模型拟合数据的程度，不能完全代表模型">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LLM微调代码实战-甄嬛机器人">
+<meta property="og:url" content="https://worlds3.github.io/2024/12/27/LLM%E5%BE%AE%E8%B0%83%E4%BB%A3%E7%A0%81%E5%AE%9E%E6%88%98-%E7%94%84%E5%AC%9B%E6%9C%BA%E5%99%A8%E4%BA%BA/index.html">
+<meta property="og:site_name" content="5ha的个人空间">
+<meta property="og:description" content="实战笔记：基于 Qwen-7B LoRA 微调“Chat-甄嬛”🧠 核心思路与心得（写在前面）在开始敲代码之前，先整理一下关于 LLM 微调的个人理解。不同于图像分类任务（目标纯粹是追求 Accuracy 或 Precision&#x2F;Recall），LLM 微调是一个“半艺术半工程”的过程：  量化指标仅供参考：Loss、PPL（困惑度）、BLEU 等指标只能反映模型拟合数据的程度，不能完全代表模型">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://worlds3.github.io/2024/12/27/LLM%E5%BE%AE%E8%B0%83%E4%BB%A3%E7%A0%81%E5%AE%9E%E6%88%98-%E7%94%84%E5%AC%9B%E6%9C%BA%E5%99%A8%E4%BA%BA/cover.png">
+<meta property="article:published_time" content="2024-12-27T09:33:02.000Z">
+<meta property="article:modified_time" content="2026-01-31T09:45:33.745Z">
+<meta property="article:author" content="5ha">
+<meta property="article:tag" content="大模型">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://worlds3.github.io/2024/12/27/LLM%E5%BE%AE%E8%B0%83%E4%BB%A3%E7%A0%81%E5%AE%9E%E6%88%98-%E7%94%84%E5%AC%9B%E6%9C%BA%E5%99%A8%E4%BA%BA/cover.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "LLM微调代码实战-甄嬛机器人",
+  "url": "https://worlds3.github.io/2024/12/27/LLM%E5%BE%AE%E8%B0%83%E4%BB%A3%E7%A0%81%E5%AE%9E%E6%88%98-%E7%94%84%E5%AC%9B%E6%9C%BA%E5%99%A8%E4%BA%BA/",
+  "image": "https://worlds3.github.io/2024/12/27/LLM%E5%BE%AE%E8%B0%83%E4%BB%A3%E7%A0%81%E5%AE%9E%E6%88%98-%E7%94%84%E5%AC%9B%E6%9C%BA%E5%99%A8%E4%BA%BA/cover.png",
+  "datePublished": "2024-12-27T09:33:02.000Z",
+  "dateModified": "2026-01-31T09:45:33.745Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "5ha",
+      "url": "https://worlds3.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/avatar.jpg"><link rel="canonical" href="https://worlds3.github.io/2024/12/27/LLM%E5%BE%AE%E8%B0%83%E4%BB%A3%E7%A0%81%E5%AE%9E%E6%88%98-%E7%94%84%E5%AC%9B%E6%9C%BA%E5%99%A8%E4%BA%BA/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css?v=5.5.2"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.json","preload":false,"top_n_per_article":1,"unescape":false,"pagination":{"enable":false,"hitsPerPage":8},"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":300,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'medium_zoom',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.12.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'LLM微调代码实战-甄嬛机器人',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">14</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于me</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/2024/12/27/LLM%E5%BE%AE%E8%B0%83%E4%BB%A3%E7%A0%81%E5%AE%9E%E6%88%98-%E7%94%84%E5%AC%9B%E6%9C%BA%E5%99%A8%E4%BA%BA/cover.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">5ha的个人空间</span></a><a class="nav-page-title" href="/"><span class="site-name">LLM微调代码实战-甄嬛机器人</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首頁</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于me</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">LLM微调代码实战-甄嬛机器人</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-12-27T09:33:02.000Z" title="发表于 2024-12-27 17:33:02">2024-12-27</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-01-31T09:45:33.745Z" title="更新于 2026-01-31 17:45:33">2026-01-31</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/LLM%E5%AD%A6%E4%B9%A0%E4%B8%8E%E5%AE%9E%E8%B7%B5/">LLM学习与实践</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">8.6k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>30分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="实战笔记：基于-Qwen-7B-LoRA-微调“Chat-甄嬛”"><a href="#实战笔记：基于-Qwen-7B-LoRA-微调“Chat-甄嬛”" class="headerlink" title="实战笔记：基于 Qwen-7B LoRA 微调“Chat-甄嬛”"></a>实战笔记：基于 Qwen-7B LoRA 微调“Chat-甄嬛”</h1><h2 id="🧠-核心思路与心得（写在前面）"><a href="#🧠-核心思路与心得（写在前面）" class="headerlink" title="🧠 核心思路与心得（写在前面）"></a>🧠 核心思路与心得（写在前面）</h2><p>在开始敲代码之前，先整理一下关于 LLM 微调的个人理解。不同于图像分类任务（目标纯粹是追求 Accuracy 或 Precision/Recall），LLM 微调是一个<strong>“半艺术半工程”</strong>的过程：</p>
+<ol>
+<li><strong>量化指标仅供参考</strong>：Loss、PPL（困惑度）、BLEU 等指标只能反映模型拟合数据的程度，不能完全代表模型“变聪明了”或“语气像了”。</li>
+<li><strong>数据质量 &gt; 数量，但量级是基础</strong>：数据的多样性和质量确实最重要，但前提是数据量要能支撑起这种多样性（勉强能训练的量级）。</li>
+<li><strong>数据工程的性价比</strong>：<ul>
+<li><strong>纯人工</strong>：太耗时耗力，不可持续。</li>
+<li><strong>纯自动</strong>：落地的质量比较不好。</li>
+<li><strong>半自动（最佳实践）</strong>：使用自动化工具（如 EasyDataSet）进行初筛和生成，配合人工/脚本微调。这是目前性价比最高的状态。</li>
+</ul>
+</li>
+<li><strong>评测的艺术</strong>：人的感觉很主观，但也很重要。如何准备高质量的测试问题（Test Prompts）来探测模型的边界，本身就是一门学问。</li>
+</ol>
+<h2 id="1-项目目标"><a href="#1-项目目标" class="headerlink" title="1. 项目目标"></a>1. 项目目标</h2><p>以 Github 开源项目为例子训练一个 <strong>Chat-甄嬛</strong>，利用《甄嬛传》剧本中所有关于甄嬛的台词和语句，基于 Qwen-7B 进行 <strong>LoRA 微调</strong>，打造一个模仿甄嬛语气的聊天机器人。</p>
+<blockquote>
+<p><strong>💡【为什么是 LoRA？】</strong><br>在实际生产环境中，全量微调（Full Fine-tuning）一个 7B 以上的模型不仅需要昂贵的 A100 集群，还容易导致模型“灾难性遗忘”（即学了甄嬛的语气，忘了通用的知识）。<br><strong>LoRA (Low-Rank Adaptation)</strong> 的本质是在大模型原有的参数旁“外挂”两个很小的矩阵（A和B）。我们只训练这两个小矩阵（参数量通常&lt;1%），既大幅降低了显存需求（消费级显卡可跑），又保留了基座模型的通用能力。这是目前工业界性价比最高的微调方案。</p>
+</blockquote>
+<h2 id="2-环境与模型准备"><a href="#2-环境与模型准备" class="headerlink" title="2. 环境与模型准备"></a>2. 环境与模型准备</h2><h3 id="2-1-环境配置"><a href="#2-1-环境配置" class="headerlink" title="2.1 环境配置"></a>2.1 环境配置</h3><p>首先 pip 换源并安装必要的依赖库</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">升级pip</span></span><br><span class="line">python -m pip install --upgrade pip</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">更换 pypi 源加速库的安装</span></span><br><span class="line">pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple</span><br><span class="line"></span><br><span class="line">pip install modelscope==1.9.5</span><br><span class="line">pip install &quot;transformers&gt;=4.32.0&quot; accelerate tiktoken einops scipy transformers_stream_generator==0.0.4 peft deepspeed</span><br></pre></td></tr></table></figure>
+<h3 id="2-2-模型下载"><a href="#2-2-模型下载" class="headerlink" title="2.2 模型下载"></a>2.2 模型下载</h3><p>使用 modelscope 中的snapshot_download函数下载 Qwen-7B-Chat 模型，第一个参数为模型名称，参数cache_dir为模型的下载路径。</p>
+<p>在代码路径下新建 download.py 文件并在其中输入以下内容，download.py执行下载，模型大小为 15 GB，下载模型大概需要 10~20 分钟。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">from</span> modelscope <span class="keyword">import</span> snapshot_download, AutoModel, AutoTokenizer</span><br><span class="line"><span class="keyword">from</span> modelscope <span class="keyword">import</span> GenerationConfig</span><br><span class="line">model_dir = snapshot_download(<span class="string">&#x27;qwen/Qwen-7B-Chat&#x27;</span>, cache_dir=<span class="string">&#x27;/root/autodl-tmp&#x27;</span>, revision=<span class="string">&#x27;v1.1.4&#x27;</span>) <span class="comment"># cache_dir为父目录</span></span><br></pre></td></tr></table></figure>
+<h3 id="2-3-基座模型测试"><a href="#2-3-基座模型测试" class="headerlink" title="2.3 基座模型测试"></a>2.3 基座模型测试</h3><p>微调前，先确认基座模型能正常工作。新建 trans.py，测试下载的模型。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">from</span> transformers <span class="keyword">import</span> AutoTokenizer, AutoModelForCausalLM, GenerationConfig</span><br><span class="line"></span><br><span class="line">model_dir = <span class="string">&#x27;/root/autodl-tmp/qwen/Qwen-7B-Chat&#x27;</span></span><br><span class="line">tokenizer = AutoTokenizer.from_pretrained(model_dir, trust_remote_code=<span class="literal">True</span>)</span><br><span class="line">model = AutoModelForCausalLM.from_pretrained(model_dir, device_map=<span class="string">&quot;auto&quot;</span>, trust_remote_code=<span class="literal">True</span>).<span class="built_in">eval</span>()</span><br><span class="line"><span class="comment"># Specify hyperparameters for generation</span></span><br><span class="line">model.generation_config = GenerationConfig.from_pretrained(model_dir, trust_remote_code=<span class="literal">True</span>) <span class="comment"># 可指定不同的生成长度、top_p等相关超参</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 第一轮对话 1st dialogue turn</span></span><br><span class="line">response, history = model.chat(tokenizer, <span class="string">&quot;你好&quot;</span>, history=<span class="literal">None</span>)</span><br><span class="line"><span class="built_in">print</span>(response)</span><br><span class="line"><span class="comment"># 你好！很高兴为你提供帮助。</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 第二轮对话 2nd dialogue turn</span></span><br><span class="line">response, history = model.chat(tokenizer, <span class="string">&quot;给我讲一个年轻人奋斗创业最终取得成功的故事。&quot;</span>, history=history)</span><br><span class="line"><span class="built_in">print</span>(response)</span><br><span class="line"><span class="comment"># 这是一个关于一个年轻人奋斗创业最终取得成功的故事。</span></span><br><span class="line"><span class="comment"># 故事的主人公叫李明，他来自一个普通的家庭，父母都是普通的工人。从小，李明就立下了一个目标：要成为一名成功的企业家。</span></span><br><span class="line"><span class="comment"># 为了实现这个目标，李明勤奋学习，考上了大学。在大学期间，他积极参加各种创业比赛，获得了不少奖项。他还利用课余时间去实习，积累了宝贵的经验。</span></span><br><span class="line"><span class="comment"># 毕业后，李明决定开始自己的创业之路。他开始寻找投资机会，但多次都被拒绝了。然而，他并没有放弃。他继续努力，不断改进自己的创业计划，并寻找新的投资机会。</span></span><br><span class="line"><span class="comment"># 最终，李明成功地获得了一笔投资，开始了自己的创业之路。他成立了一家科技公司，专注于开发新型软件。在他的领导下，公司迅速发展起来，成为了一家成功的科技企业。</span></span><br><span class="line"><span class="comment"># 李明的成功并不是偶然的。他勤奋、坚韧、勇于冒险，不断学习和改进自己。他的成功也证明了，只要努力奋斗，任何人都有可能取得成功。</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 第三轮对话 3rd dialogue turn</span></span><br><span class="line">response, history = model.chat(tokenizer, <span class="string">&quot;给这个故事起一个标题&quot;</span>, history=history)</span><br><span class="line"><span class="built_in">print</span>(response)</span><br><span class="line"><span class="comment"># 《奋斗创业：一个年轻人的成功之路》</span></span><br></pre></td></tr></table></figure>
+<p>需要根据自己的代码目录更换环境，运行后能回答问题就没问题</p>
+<p><img src="C:\Users\0000\AppData\Roaming\Typora\typora-user-images\image-20251201143728590.png" alt="image-20251201143728590"></p>
+<h2 id="3-数据工程（核心难点）"><a href="#3-数据工程（核心难点）" class="headerlink" title="3. 数据工程（核心难点）"></a>3. 数据工程（核心难点）</h2><h3 id="3-1-补充环境"><a href="#3-1-补充环境" class="headerlink" title="3.1 补充环境"></a>3.1 补充环境</h3><p>微调训练需要额外的库：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">pip install transformers==<span class="number">4.35</span><span class="number">.2</span></span><br><span class="line">pip install peft==<span class="number">0.4</span><span class="number">.0</span></span><br><span class="line">pip install datasets==<span class="number">2.10</span><span class="number">.1</span></span><br><span class="line">pip install accelerate==<span class="number">0.20</span><span class="number">.3</span></span><br><span class="line">pip install tiktoken</span><br><span class="line">pip install transformers_stream_generator</span><br></pre></td></tr></table></figure>
+<h3 id="3-2-深度理解：SFT数据构建"><a href="#3-2-深度理解：SFT数据构建" class="headerlink" title="3.2 深度理解：SFT数据构建"></a>3.2 深度理解：SFT数据构建</h3><p>在开始构建数据前，我们需要厘清几个常被混淆的概念。在 SFT (Supervised Fine-Tuning) 的大框架下，我们根据<strong>微调的目的</strong>将其细分为两个既独立又常常结合的子集：指令微调（IT）和领域微调（DSFT），它们不是互斥的，是 <strong>格式与内容</strong> 的关系。其实大多数都不用用区分这么细，因为在微调的时候肯定是一方面学习领域表达术语、逻辑等内容，一方面也要约束模型输出的格式。我们这里的<strong>甄嬛体微调</strong>赋予模型“甄嬛人格”并遵循指令</p>
+<h4 id="（1）指令微调（Instruction-Tuning）："><a href="#（1）指令微调（Instruction-Tuning）：" class="headerlink" title="（1）指令微调（Instruction Tuning）："></a>（1）指令微调（Instruction Tuning）：</h4><div class="table-container">
+<table>
+<thead>
+<tr>
+<th><strong>维度</strong></th>
+<th><strong>描述</strong></th>
+<th><strong>核心目标</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>目的</strong></td>
+<td>培养模型<strong>遵循指令</strong>、<strong>理解用户意图</strong>、按照指定的格式输出的能力。</td>
+<td>让模型<strong>“听得懂话”</strong>、<strong>“按要求做事”</strong>。</td>
+</tr>
+<tr>
+<td><strong>关注点</strong></td>
+<td><strong>交互格式</strong>、<strong>逻辑结构</strong>、<strong>约束遵循</strong>。</td>
+<td>是否能按 JSON 输出、是否能按照步骤推理、是否能进行多轮对话。</td>
+</tr>
+<tr>
+<td><strong>核心地位</strong></td>
+<td><strong>LLM 微调的核心</strong>。它是模型从基础大模型（Base Model）进化到 AI 助手的关键。</td>
+<td>即使是领域微调，也需要依赖指令微调的能力作为<strong>操作接口</strong>。</td>
+</tr>
+</tbody>
+</table>
+</div>
+<ul>
+<li>格式：</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;instruction&quot;</span>: <span class="string">&quot;回答用户问题，仅输出数字。&quot;</span>,</span><br><span class="line">  <span class="string">&quot;input&quot;</span>: <span class="string">&quot;1+1等于几？&quot;</span>,</span><br><span class="line">  <span class="string">&quot;output&quot;</span>: <span class="string">&quot;2&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这是 Qwen-7B-Chat 这种 Chat 模型的关键能力来源。</p>
+<h4 id="（2）领域微调（Domain-SFT）"><a href="#（2）领域微调（Domain-SFT）" class="headerlink" title="（2）领域微调（Domain SFT）"></a>（2）领域微调（Domain SFT）</h4><ul>
+<li><p><strong>目的：</strong> 注入领域习惯、术语和逻辑，让模型学会某领域的风格、术语和表达方式。换句话说：<strong>领域微调决定“模型像谁说话、懂什么领域”。</strong></p>
+</li>
+<li><p><strong>误区警示：</strong> <strong>SFT 对“注入海量知识”的效果其实很有限。</strong> 如果你有1G的飞机维修手册 PDF，光靠 SFT，模型很难把所有维修参数背下来且不产生幻觉。</p>
+</li>
+<li><p><strong>正确认知：</strong> SFT 更多是学会“飞机维修专家的说话语气、术语的使用、推理的逻辑”。真正要注入海量知识，通常需要 <strong>CPT（增量/继续预训练）</strong> 或者更实际的 <strong>RAG（检索增强生成）</strong>。SFT 在这里的角色是让模型更擅长配合 RAG 系统。</p>
+<blockquote>
+<p>💡<strong>【SFT与RAG】</strong></p>
+<p>个人理解其实做SFT其实和RAG是相辅相成、互为一体的，都需要从拿到的语料中清洗出来高质量的数据。<strong>真实项目里面拿到的语料一定是五花八门的</strong>，数据格式可能有PDF、word、TXT、Markdown，xlsx更麻烦的是图片/图片型PDF（甚至还有水印）。语料中又会有公式，表格等等，不限于简单的纯文本。</p>
+<p>面对这种复杂的语料、怎么从得到纯文本、公式、图片怎么处理、如何切出语义连续的文本块以供使用，<strong>这些问题无论做RAG还是SFT都是要共同面对一的</strong>，目标就是切出来长度合适、语义连续的文本块，RAG对文本块进行向量化入库，SFT需要用这个文本块做指令对，这个过程纯人工的工作量太浩大了， 而目前现成的工具一套式流程做出来的数据质量肯定是不佳的，所以还是要会到半工具半人工校正的方式。</p>
+</blockquote>
+</li>
+</ul>
+<h3 id="3-3-数据构建策略：从“剧本”到“指令”"><a href="#3-3-数据构建策略：从“剧本”到“指令”" class="headerlink" title="3.3 数据构建策略：从“剧本”到“指令”"></a>3.3 数据构建策略：从“剧本”到“指令”</h3><p>LLM 微调的核心是 <strong>指令微调（Instruction Tuning）</strong>。我们需要将原始剧本转化为 Instruction - Input - Output 的格式。</p>
+<p> <strong>对于本项目，由于数据源主要是剧本台词，结构相对简单（角色—台词)：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">第2幕</span><br><span class="line">（退朝，百官散去）</span><br><span class="line">官员甲：咱们皇上可真是器重年将军和隆科多大人。</span><br><span class="line">官员乙：隆科多大人，恭喜恭喜啊！您可是国家的大功臣啊！</span><br><span class="line">官员丙：年大将军，皇上对你可是垂青有加呀！</span><br><span class="line">官员丁：年大人，您可是皇上的股肱之臣哪！</span><br><span class="line">苏培盛（追上年羹尧）：年大将军请留步。大将军——</span><br><span class="line">年羹尧：苏公公，有何指教？</span><br><span class="line">苏培盛：不敢。皇上惦记大将军您的臂伤，特让奴才将这秘制的金创药膏交给大人，叫您使用。</span><br></pre></td></tr></table></figure>
+<p><strong>处理逻辑（Regex/脚本）：</strong></p>
+<ol>
+<li>提取角色和对话内容。</li>
+<li>构建对话流。</li>
+<li>转换为 JSON 训练格式。</li>
+</ol>
+<p>每一句都有人物及对应的台词，所以就可以很简单的<strong>正则匹配</strong>就将这些数据处理成对话的形式，如下：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">[</span></span><br><span class="line">    <span class="punctuation">&#123;</span><span class="attr">&quot;rloe&quot;</span><span class="punctuation">:</span><span class="string">&quot;官员甲&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;content&quot;</span><span class="punctuation">:</span><span class="string">&quot;咱们皇上可真是器重年将军和隆科多大人。&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#123;</span><span class="attr">&quot;rloe&quot;</span><span class="punctuation">:</span><span class="string">&quot;官员乙&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;content&quot;</span><span class="punctuation">:</span><span class="string">&quot;隆科多大人，恭喜恭喜啊！您可是国家的大功臣啊！&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#123;</span><span class="attr">&quot;rloe&quot;</span><span class="punctuation">:</span><span class="string">&quot;官员丙&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;content&quot;</span><span class="punctuation">:</span><span class="string">&quot;年大将军，皇上对你可是垂青有加呀！&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#123;</span><span class="attr">&quot;rloe&quot;</span><span class="punctuation">:</span><span class="string">&quot;官员丁&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;content&quot;</span><span class="punctuation">:</span><span class="string">&quot;年大人，您可是皇上的股肱之臣哪！&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#123;</span><span class="attr">&quot;rloe&quot;</span><span class="punctuation">:</span><span class="string">&quot;苏培盛&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;content&quot;</span><span class="punctuation">:</span><span class="string">&quot;年大将军请留步。大将军——&quot;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    ...</span><br><span class="line"><span class="punctuation">]</span></span><br></pre></td></tr></table></figure>
+<p>最后再把这种对话QA将其整理成 <code>json</code> 格式的数据，构造纯 QA 风格，这里的input也是可以省略的，直接用instruction做输入，因为这里是微调出一个甄嬛风格的聊天助手，本质是要一个QA对学习说话风格。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">[</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;instruction&quot;</span><span class="punctuation">:</span> <span class="string">&quot;现在你要扮演皇帝身边的女人--甄嬛&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;input&quot;</span><span class="punctuation">:</span> <span class="string">&quot;你是谁？&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;output&quot;</span><span class="punctuation">:</span> <span class="string">&quot;家父是大理寺少卿甄远道。&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;instruction&quot;</span><span class="punctuation">:</span> <span class="string">&quot;小姐，别的秀女都在求中选，唯有咱们小姐想被撂牌子...&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;input&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;output&quot;</span><span class="punctuation">:</span> <span class="string">&quot;嘘——都说许愿说破是不灵的。&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">]</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>【为什么input字段可以留空？】</p>
+<p>在标准的 Alpaca 训练格式中，Instruction 代表任务指令，Input 代表任务处理的对象（上下文），Output 是答案。例如：“把这句话翻译成英文”（Instruction）+ “今天天气真好”（Input）。</p>
+<p>但这个跟选择微调的模型有关，在输入到模型中去时会转换为ChatML格式，这个也是比较主流的格式，Qwen-chat系列中用的就是这个，而Llama 2 Chat就不同，需要按照选择的模型进行处理：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># ChatML格式</span><br><span class="line">|system|&gt;</span><br><span class="line">You are Qwen<span class="punctuation">,</span> created by Alibaba Cloud. You are a helpful assistant.(qwen的默认系统提示词) 可以修改为“在你要扮演皇帝身边的女人--甄嬛”</span><br><span class="line">&lt;|user|&gt;</span><br><span class="line">小姐，别的秀女都在求中选，唯有咱们小姐想被撂牌子...</span><br><span class="line">&lt;|assistant|&gt;</span><br><span class="line">嘘——都说许愿说破是不灵的。</span><br></pre></td></tr></table></figure>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># Llama <span class="number">2</span> Chat的格式</span><br><span class="line">&lt;s&gt;<span class="punctuation">[</span>INST<span class="punctuation">]</span> &lt;&lt;SYS&gt;&gt;</span><br><span class="line">You are a helpful assistant.</span><br><span class="line">&lt;&lt;/SYS&gt;&gt;</span><br><span class="line"></span><br><span class="line">你好 <span class="punctuation">[</span>/INST<span class="punctuation">]</span></span><br></pre></td></tr></table></figure>
+<p>而ChatML格式在处理的时候，会把instruction + input拼接到 user prompt中去。 所以其实某个字段留空并不影响，只要能表述清楚意思即可。在训练的时候，直接设置system prompt为要扮演的角色，所以直接使用甄嬛的QA对，让模型学习这个对话的风格语气即可达到微调的效果。在下面的训练代码中也有所体现。</p>
+</blockquote>
+<h3 id="3-4-补充内容—-如何从复杂语料中构建高质量数据集？"><a href="#3-4-补充内容—-如何从复杂语料中构建高质量数据集？" class="headerlink" title="3.4 补充内容—-如何从复杂语料中构建高质量数据集？"></a>3.4 补充内容—-如何从复杂语料中构建高质量数据集？</h3><p>大部分教程直接提供现成的数据集，<strong>包括我们目前的案例也是直接给出的微调数据的json文件，这里附录会说明如何使用社区中维护的非常不错的工具来做初版的数据集，这里先只说思路</strong>。</p>
+<blockquote>
+<p>在真实的落地项目中，我们面对的往往是堆积如山的 PDF、Word、Markdown复杂语料。<strong>数据准备往往占据了 70% 的工作量，且数据质量直接决定微调效果的上限。</strong>各种微调方法主要是节省显存的工程手段，数据才是灵魂。</p>
+</blockquote>
+<p><strong>问题：</strong>完全人工标注质量高但太慢，时间和精力消耗太高；完全自动化（丢给GPT直接生成或者用集成的工具）容易产生幻觉或逻辑断层，生成数据的质量堪忧， 针对不同场景，可以尝试不同的构建方法：</p>
+<h4 id="方案一：开源神器EasyDataSet"><a href="#方案一：开源神器EasyDataSet" class="headerlink" title="方案一：开源神器EasyDataSet"></a><strong>方案一：开源神器<a target="_blank" rel="noopener" href="https://docs.easy-dataset.com/">EasyDataSet</a></strong></h4><blockquote>
+<p>💡【工具优势】</p>
+<ol>
+<li><strong>集成 MinerU：</strong> 它内置了强大的 PDF 解析能力（基于 MinerU），即使是带有复杂公式、表格甚至扫描图片的 PDF 也能较好地转化为 Markdown。</li>
+<li><strong>提供常用分块：</strong> 将长文档切分成适合模型阅读的片段。</li>
+<li><strong>内置 LLM 校正：</strong> 它不仅仅是提取文本，还能调用大模型对提取内容进行清洗、<strong>QA 对生成</strong>。</li>
+</ol>
+</blockquote>
+<p>这个工具已经是llm微调社区中维护的非常好的一个工具，在没有追求特别高质量的数据情况下，可以先选用这个工具作为demo，后续再进行人工的调整。</p>
+<ol>
+<li><strong>工具辅助</strong>：使用 <strong>EasyDataSet</strong> 等工具集成 <strong>MinerU（解析PDF）</strong>+ LLM（清洗切分），快速生成初版数据。</li>
+<li><strong>人工/脚本介入</strong>：<ul>
+<li><strong>正则清洗</strong>：去除剧本中的动作描写（如“转身离去”），只保留对话。</li>
+<li><strong>坏例剔除</strong>：人工快速浏览，删掉逻辑不通的自动生成样本。</li>
+<li><strong>CoT 增强</strong>：对于复杂的领域知识，<strong>需人工手写少量“思维链”样本作为种子，再让大模型模仿生成</strong>。</li>
+</ul>
+</li>
+</ol>
+<h4 id="方案二：利用各种工具搭建自己的处理的PipeLine"><a href="#方案二：利用各种工具搭建自己的处理的PipeLine" class="headerlink" title="方案二：利用各种工具搭建自己的处理的PipeLine"></a><strong>方案二：利用各种工具搭建自己的处理的PipeLine</strong></h4><p>对数据质量有更高要求，或者 EasyDataSet 无法满足特定的复杂文档，则可以拆解使用不同的工具，自己搭建一个更精细的 Pipeline：</p>
+<ol>
+<li><p><strong>高精度解析：</strong> 单独使用<strong>MinerU</strong> 或其他的OCR、专业文档转换工具，将复杂语料（保留标题层级、表格结构）转为高质量 Markdown。</p>
+</li>
+<li><p><strong>多模态理解：</strong> 对于文档中的工程图、流程图，利用 <strong>Qwen2.5-VL</strong> 或 <strong>GPT-4o</strong> 进行视觉理解并生成文字描述。</p>
+</li>
+<li><p><strong>自定义切块</strong>：根据自己的需求和业务逻辑，定制化的用脚本实现切块的逻辑</p>
+</li>
+<li><p><strong>数据生成：</strong></p>
+<p>编写合适的 Prompt，让最强模型（Claude 4.5 Sonnet / Gemini3 Pro等等）基于文档切片执行以下任务：</p>
+<ul>
+<li>提取最有价值的 10~25 个问题对（覆盖从初级到专家难度）。</li>
+<li>生成包含 <strong>思维链 (CoT)</strong> 的详细答案。</li>
+<li>输出严格的 JSON 格式数据，最后人工再检查。</li>
+</ul>
+</li>
+</ol>
+<h2 id="4-模型训练和推理"><a href="#4-模型训练和推理" class="headerlink" title="4. 模型训练和推理"></a>4. 模型训练和推理</h2><h3 id="4-1-模型训练"><a href="#4-1-模型训练" class="headerlink" title="4.1 模型训练"></a>4.1 模型训练</h3><p>这一步，<strong>使用peft库来实现lora微调基本是模板式的代码</strong>，修改路径后直接训练即可。</p>
+<blockquote>
+<p>【补充Lora实战中的细节，模型最终输入形式】</p>
+<p>模型无法直接理解 JSON，我们需要将其转换成模型训练时的<strong>Prompt Template（模版格式）并进行 Tokenization（分词）</strong>。正如上所说，Qwen-7B使用的是Chat-ML格式。代码把 instruction 和 input 拼在一起，变成<strong>用户说的话</strong>。同时，它修改了 system prompt为甄嬛人设，得到如下的模板格式</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;|im_start|&gt;system</span><br><span class="line">现在你要扮演皇帝身边的女人--甄嬛.&lt;|im_end|&gt;</span><br><span class="line">&lt;|im_start|&gt;user</span><br><span class="line">小姐，别的秀女都在求中选，唯有咱们小姐想被撂牌子，菩萨一定记得真真儿的——&lt;|im_end|&gt;</span><br><span class="line">&lt;|im_start|&gt;assistant</span><br><span class="line">嘘——都说许愿说破是不灵的。&lt;|im_end|&gt;</span><br><span class="line">&lt;|endoftext|&gt;</span><br></pre></td></tr></table></figure>
+<p>再进行编码输入到模型里面中，具体的流程举个例子：</p>
+<p>原始数据 (Alpaca): </p>
+<p>Instruction: “你好”</p>
+<p> Input: “” </p>
+<p>Output: “我是甄嬛” </p>
+<p>处理过程: </p>
+<ol>
+<li>格式化 (Format):   “&lt;|im_start|&gt;system\n你要扮演甄嬛&lt;|im_end|&gt;\n&lt;|im_start|&gt;user\n你好&lt;|im_end|&gt;\n&lt;|im_start|&gt;assistant\n我是甄嬛&lt;|im_end|&gt;” </li>
+<li>编码 (Tokenize):   Input_ids: [System IDs] + [User IDs] + [Assit IDs]    </li>
+<li>制作标签 (Labeling):   Labels:    [-100, …, -100] + [-100, …, -100] + [Assit IDs]    (System部分不学)     (User部分不学)      (只学Output) </li>
+<li>输入模型 (Training):   Model(input_ids) -&gt; 计算出的 Logits   Loss(Logits, Labels) -&gt; 只有 Assit 部分产生 Loss -&gt; 反向传播</li>
+</ol>
+</blockquote>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> datasets <span class="keyword">import</span> Dataset</span><br><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line"><span class="keyword">from</span> transformers <span class="keyword">import</span> AutoTokenizer, AutoModelForCausalLM, DataCollatorForSeq2Seq, TrainingArguments, Trainer, GenerationConfig</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">from</span> peft <span class="keyword">import</span> LoraConfig, TaskType, get_peft_model</span><br><span class="line"></span><br><span class="line"><span class="comment"># 用于处理数据集的函数</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">`Lora` 训练的数据是需要经过格式化、编码之后再输入给模型进行训练的，需要将输入文本编码为 input_ids，将输出文本编码为 `labels`，编码之后的结果都是多维的向量。我们首先定义一个预处理函数，这个函数用于对每一个样本，编码其输入、输出文本并返回一个编码后的字典：</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">经过格式化的数据，也就是送入模型的每一条数据，都是一个字典，包含了 `input_ids`、`attention_mask`、`labels` 三个键值对，其中 `input_ids` 是输入文本的编码，`attention_mask` 是输入文本的 attention mask，`labels` 是输出文本的编码。decode之后应该是这样的：</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">```text</span></span><br><span class="line"><span class="string">&lt;|im_start|&gt;system</span></span><br><span class="line"><span class="string">现在你要扮演皇帝身边的女人--甄嬛.&lt;|im_end|&gt;</span></span><br><span class="line"><span class="string">&lt;|im_start|&gt;user</span></span><br><span class="line"><span class="string">小姐，别的秀女都在求中选，唯有咱们小姐想被撂牌子，菩萨一定记得真真儿的——&lt;|im_end|&gt;</span></span><br><span class="line"><span class="string">&lt;|im_start|&gt;assistant</span></span><br><span class="line"><span class="string">嘘——都说许愿说破是不灵的。&lt;|im_end|&gt;</span></span><br><span class="line"><span class="string">&lt;|endoftext|&gt;</span></span><br><span class="line"><span class="string">```</span></span><br><span class="line"><span class="string">不同模型所对应的格式化输入都不一样，所以需要我们深度模型的训练源码来查看，因为按照原本模型指令微调的形式进行Lora微调效果应该是最好的，所以我们依然遵循原本模型的输入格式。</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">process_func</span>(<span class="params">example</span>):</span><br><span class="line">    MAX_LENGTH = <span class="number">384</span>    <span class="comment"># Llama分词器会将一个中文字切分为多个token，因此需要放开一些最大长度，保证数据的完整性</span></span><br><span class="line">    input_ids, attention_mask, labels = [], [], []</span><br><span class="line">    instruction = tokenizer(<span class="string">&quot;\n&quot;</span>.join([<span class="string">&quot;&lt;|im_start|&gt;system&quot;</span>, <span class="string">&quot;现在你要扮演皇帝身边的女人--甄嬛.&lt;|im_end|&gt;&quot;</span> + <span class="string">&quot;\n&lt;|im_start|&gt;user\n&quot;</span> + example[<span class="string">&quot;instruction&quot;</span>] + example[<span class="string">&quot;input&quot;</span>] + <span class="string">&quot;&lt;|im_end|&gt;\n&quot;</span>]).strip(), add_special_tokens=<span class="literal">False</span>)  <span class="comment"># add_special_tokens 不在开头加 special_tokens</span></span><br><span class="line">    response = tokenizer(<span class="string">&quot;&lt;|im_start|&gt;assistant\n&quot;</span> + example[<span class="string">&quot;output&quot;</span>] + <span class="string">&quot;&lt;|im_end|&gt;\n&quot;</span>, add_special_tokens=<span class="literal">False</span>)</span><br><span class="line">    input_ids = instruction[<span class="string">&quot;input_ids&quot;</span>] + response[<span class="string">&quot;input_ids&quot;</span>] + [tokenizer.pad_token_id]</span><br><span class="line">    attention_mask = instruction[<span class="string">&quot;attention_mask&quot;</span>] + response[<span class="string">&quot;attention_mask&quot;</span>] + [<span class="number">1</span>]  <span class="comment"># 因为eos token咱们也是要关注的所以 补充为1</span></span><br><span class="line">    labels = [-<span class="number">100</span>] * <span class="built_in">len</span>(instruction[<span class="string">&quot;input_ids&quot;</span>]) + response[<span class="string">&quot;input_ids&quot;</span>] + [tokenizer.pad_token_id]  <span class="comment"># Qwen的特殊构造就是这样的</span></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">len</span>(input_ids) &gt; MAX_LENGTH:  <span class="comment"># 做一个截断</span></span><br><span class="line">        input_ids = input_ids[:MAX_LENGTH]</span><br><span class="line">        attention_mask = attention_mask[:MAX_LENGTH]</span><br><span class="line">        labels = labels[:MAX_LENGTH]</span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">        <span class="string">&quot;input_ids&quot;</span>: input_ids,</span><br><span class="line">        <span class="string">&quot;attention_mask&quot;</span>: attention_mask,</span><br><span class="line">        <span class="string">&quot;labels&quot;</span>: labels</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">#  loraConfig</span></span><br><span class="line">config = LoraConfig(</span><br><span class="line">    task_type=TaskType.CAUSAL_LM, </span><br><span class="line">    target_modules=[<span class="string">&quot;c_attn&quot;</span>, <span class="string">&quot;c_proj&quot;</span>, <span class="string">&quot;w1&quot;</span>, <span class="string">&quot;w2&quot;</span>],  <span class="comment"># 这个不同的模型需要设置不同的参数，需要看模型中的attention层</span></span><br><span class="line">    inference_mode=<span class="literal">False</span>, <span class="comment"># 训练模式</span></span><br><span class="line">    r=<span class="number">8</span>, <span class="comment"># Lora 秩</span></span><br><span class="line">    lora_alpha=<span class="number">32</span>, <span class="comment"># Lora alaph，具体作用参见 Lora 原理</span></span><br><span class="line">    lora_dropout=<span class="number">0.1</span><span class="comment"># Dropout 比例</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 配置训练参数</span></span><br><span class="line">args = TrainingArguments(</span><br><span class="line">    output_dir=<span class="string">&quot;./output/Qwen-huanhuan&quot;</span>,</span><br><span class="line">    per_device_train_batch_size=<span class="number">8</span>,</span><br><span class="line">    gradient_accumulation_steps=<span class="number">2</span>,</span><br><span class="line">    logging_steps=<span class="number">10</span>,</span><br><span class="line">    num_train_epochs=<span class="number">10</span>,</span><br><span class="line">    gradient_checkpointing=<span class="literal">True</span>,</span><br><span class="line">    save_steps=<span class="number">100</span>,</span><br><span class="line">    learning_rate=<span class="number">1e-4</span>,</span><br><span class="line">    save_on_each_node=<span class="literal">True</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="string">&quot;__main__&quot;</span> == __name__:</span><br><span class="line">    <span class="comment"># 处理数据集</span></span><br><span class="line">    <span class="comment"># 将JSON文件转换为CSV文件</span></span><br><span class="line">    df = pd.read_json(<span class="string">&#x27;./data/huanhuan.json&#x27;</span>)</span><br><span class="line">    ds = Dataset.from_pandas(df)</span><br><span class="line">    <span class="comment"># 加载tokenizer</span></span><br><span class="line">    tokenizer = AutoTokenizer.from_pretrained(<span class="string">&#x27;./qwen/Qwen-7B-Chat/&#x27;</span>, use_fast=<span class="literal">False</span>, trust_remote_code=<span class="literal">True</span>)</span><br><span class="line">    tokenizer.pad_token_id = tokenizer.eod_id</span><br><span class="line">    <span class="comment"># 将数据集变化为token形式</span></span><br><span class="line">    tokenized_id = ds.<span class="built_in">map</span>(process_func, remove_columns=ds.column_names)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 创建模型并以半精度形式加载</span></span><br><span class="line">    model = AutoModelForCausalLM.from_pretrained(<span class="string">&#x27;./qwen/Qwen-7B-Chat/&#x27;</span>, trust_remote_code=<span class="literal">True</span>, torch_dtype=torch.half, device_map=<span class="string">&quot;auto&quot;</span>)</span><br><span class="line">    model.enable_input_require_grads() <span class="comment"># 开启梯度检查点时，要执行该方法</span></span><br><span class="line">    <span class="comment"># 加载lora参数</span></span><br><span class="line">    model = get_peft_model(model, config)</span><br><span class="line">    <span class="comment"># 使用trainer训练</span></span><br><span class="line">    trainer = Trainer(</span><br><span class="line">        model=model,</span><br><span class="line">        args=args,</span><br><span class="line">        train_dataset=tokenized_id,</span><br><span class="line">        data_collator=DataCollatorForSeq2Seq(tokenizer=tokenizer, padding=<span class="literal">True</span>),</span><br><span class="line">        )</span><br><span class="line">    trainer.train() <span class="comment"># 开始训练</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 保存lora适配权重,无需保存整个微调后的模型，仅8M</span></span><br><span class="line">    model.save_pretrained(<span class="string">&quot;./output/Qwen-huanhuan/lora_weights&quot;</span>) </span><br><span class="line">    tokenizer.save_pretrained(<span class="string">&quot;./output/Qwen-huanhuan/lora_weights&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Qwen的chat方法，依赖于这个属性进行格式化输出，但在Lora微调的时候可能把这个属性丢失了</span></span><br><span class="line">    model.generation_config.chat_format = <span class="string">&quot;chatml&quot;</span>  <span class="comment"># Qwen系列必须设置这个属性</span></span><br><span class="line">    response, history = model.chat(tokenizer, <span class="string">&quot;你是谁啊！&quot;</span>, history=[], system=<span class="string">&quot;现在你要扮演皇帝身边的女人--甄嬛&quot;</span>)</span><br><span class="line">    <span class="built_in">print</span>(response)</span><br></pre></td></tr></table></figure>
+<p>等待训练完成即可：</p>
+<p><img src="LLM微调代码实战-甄嬛机器人\000.png" alt="image-20251201144104257"></p>
+<h3 id="4-2-加载与推理测试"><a href="#4-2-加载与推理测试" class="headerlink" title="4.2 加载与推理测试"></a>4.2 加载与推理测试</h3><p>训练大概会需要 <em>20 ~ 30</em> 分钟的时间，训练完成之后会在<code>output</code>目录下生成<code>lora</code>模型。可以使用以下代码进行测试：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">from</span> transformers <span class="keyword">import</span> AutoTokenizer, AutoModelForCausalLM, GenerationConfig</span><br><span class="line"><span class="keyword">from</span> peft <span class="keyword">import</span> PeftModel</span><br><span class="line"></span><br><span class="line"><span class="comment"># 加载基础模型</span></span><br><span class="line">base_model_dir = <span class="string">&#x27;/root/autodl-tmp/qwen/Qwen-7B-Chat&#x27;</span></span><br><span class="line">lora_weights_dir = <span class="string">&#x27;./output/Qwen-huanhuan/lora_weights&#x27;</span>  </span><br><span class="line"></span><br><span class="line"><span class="comment"># 加载tokenizer和原始模型</span></span><br><span class="line">tokenizer = AutoTokenizer.from_pretrained(base_model_dir, trust_remote_code=<span class="literal">True</span>)</span><br><span class="line">base_model = AutoModelForCausalLM.from_pretrained(</span><br><span class="line">    base_model_dir,</span><br><span class="line">    device_map=<span class="string">&quot;auto&quot;</span>,</span><br><span class="line">    trust_remote_code=<span class="literal">True</span></span><br><span class="line">).<span class="built_in">eval</span>()</span><br><span class="line"><span class="comment"># ==========加载Lora权重 ==========</span></span><br><span class="line"><span class="comment"># 保存的是Lora适配器的权重，直接加载进来</span></span><br><span class="line">model = PeftModel.from_pretrained(base_model, lora_weights_dir)   <span class="comment"># 有用lora适配多个任务，然后训练合并lora权重的</span></span><br><span class="line">model = model.merge_and_unload()  <span class="comment"># 合并Lora权重到原模型, 这里也只是在内存上合并，较少适配器推理的延迟</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 必须设置generation_config的chat_format</span></span><br><span class="line">model.generation_config = GenerationConfig.from_pretrained(base_model_dir, trust_remote_code=<span class="literal">True</span>)</span><br><span class="line"><span class="comment"># 测试对话</span></span><br><span class="line">response, history = model.chat(tokenizer, <span class="string">&quot;你是谁啊！&quot;</span>, history=<span class="literal">None</span>, system=<span class="string">&quot;现在你要扮演皇帝身边的女人--甄嬛&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;第一轮回复:&quot;</span>, response)</span><br><span class="line"></span><br><span class="line">response, history = model.chat(tokenizer, <span class="string">&quot;你会法律吗大姐&quot;</span>, history=history, system=<span class="string">&quot;现在你要扮演皇帝身边的女人--甄嬛&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;第二轮回复:&quot;</span>, response)</span><br></pre></td></tr></table></figure>
+<h2 id="5-模型评估"><a href="#5-模型评估" class="headerlink" title="5. 模型评估"></a>5. 模型评估</h2><p>微调完成后，仅凭人工对话评测的“感觉”来对模型进行评估的过于主观。我们需要结合更客观的方法来验证模型是否真的学会了“甄嬛体”，以及是否出现了“灾难性遗忘”。即客观指标 +人工的评分</p>
+<h3 id="5-1-量化指标"><a href="#5-1-量化指标" class="headerlink" title="5.1 量化指标"></a>5.1 量化指标</h3><h4 id="1-验证集-Loss-Validation-Loss"><a href="#1-验证集-Loss-Validation-Loss" class="headerlink" title="1. 验证集 Loss (Validation Loss)"></a>1. 验证集 Loss (Validation Loss)</h4><p>在目前的训练代码中，目前只用到了训练集。<strong>理论上，必须划分出 10% 的数据作为验证集（Validation Set），这部分数据不参与训练，观察Train loss 和 val loss</strong>。两个loss主要用于监测是否<strong>过拟合</strong>（Train降Val升）或<strong>欠拟合</strong>。只要 Loss 正常下降并收敛即可，<strong>具体数值大小在不同数据集间没有可比性</strong>。</p>
+<h4 id="2-文本重合度指标-BLEU-amp-ROUGE"><a href="#2-文本重合度指标-BLEU-amp-ROUGE" class="headerlink" title="2. 文本重合度指标 (BLEU &amp; ROUGE)"></a>2. 文本重合度指标 (BLEU &amp; ROUGE)</h4><p>这是传统 NLP 的评估指标。</p>
+<ul>
+<li><strong>BLEU：</strong> 看模型生成的词有多少在标准答案里出现过（注重精确度P）。</li>
+<li><strong>Perplexity</strong>：语言建模任务中常用，越低越好，代表模型越“理解”数据</li>
+<li><strong>ROUGE：</strong> 看标准答案里的词有多少被模型生成出来了（注重召回率R）。</li>
+<li><em>注：对于角色扮演，这三个指标仅供参考，因为甄嬛可以说“本宫乏了”，也可以说“臣妾身体不适”，意思一样但 BLEU 分数可能很低。</em></li>
+</ul>
+<h3 id="5-2-构建评测集进行打分"><a href="#5-2-构建评测集进行打分" class="headerlink" title="5.2 构建评测集进行打分"></a>5.2 构建评测集进行打分</h3><p>正如前面所说，<strong>“怎么准备问题”</strong>是关键。我们需要构建一个高质量的测试集（Test Set），该集合不参与训练。</p>
+<h4 id="方案-A：LLM-as-a-Judge-大模型裁判"><a href="#方案-A：LLM-as-a-Judge-大模型裁判" class="headerlink" title="方案 A：LLM-as-a-Judge (大模型裁判)"></a>方案 A：LLM-as-a-Judge (大模型裁判)</h4><p>用 GPT-5 或 Gemini3 pro当裁判。</p>
+<ul>
+<li><strong>Input</strong>: 用户问题 + 微调模型的回答 + 标准答案（可选）。</li>
+<li><strong>Prompt</strong>: “你是一个剧本专家。请评估以下回答是否符合‘甄嬛’的语气特点（清冷、聪慧、古风）。请从 1-5 分打分，并给出理由。”</li>
+<li><strong>优点</strong>：自动化、速度快、比 BLEU 更懂语义。</li>
+</ul>
+<h4 id="方案-B：人工主观评估-Human-Eval"><a href="#方案-B：人工主观评估-Human-Eval" class="headerlink" title="方案 B：人工主观评估 (Human Eval)"></a>方案 B：人工主观评估 (Human Eval)</h4><p>虽然主观，但肯定是必不可少的。重点关注以下维度：</p>
+<ol>
+<li><strong>语气模仿度 (Style)</strong>：是否还有“AI味”？是不是太客气了？（甄嬛应该是有锋芒的）</li>
+<li><strong>知识幻觉 (Hallucination)</strong>：有没有胡编乱造剧情？</li>
+<li><strong>逻辑连贯性</strong>：多轮对话后是否还能记住自己是甄嬛？</li>
+</ol>
+<h3 id="5-3-补充内容—评估微调效果"><a href="#5-3-补充内容—评估微调效果" class="headerlink" title="5.3 补充内容—评估微调效果"></a>5.3 补充内容—评估微调效果</h3><p>LLM微调的评估就必须得人工用高级LLM打分的方式等主观的方式，因为特别是生成任务，量化的指标大多都是按字重叠度，这种方式对比较灵活的生成任务并不是特别合适。因为语言表达的不同但生成的意思是一致的情况是多数。但如果是机器翻译、文本分类等等用F1、ACC等指标即可，所以针对不同的微调目的，评估方式也不同：</p>
+<p>✅ 精调任务能力：判断模型是否更好完成分类、问答、摘要、代码生成等任务。</p>
+<p>✅ 领域适应：关注模型是否更懂特定领域（如医疗、法律、金融等）的语言和逻辑。</p>
+<p>✅ 部署优化：比如用LoRA做高效微调，希望在保证精度的前提下减少显存/推理时间。</p>
+<p><strong>技术指标评估：量化模型效果</strong></p>
+<p>📌 通用指标</p>
+<p>训练/验证 Loss：基础指标。验证 loss 稳定下降，说明模型没过拟合。</p>
+<p>Perplexity（困惑度）：语言建模任务中常用，越低越好，代表模型越“理解”数据。</p>
+<p>📌 微调情感、文本分类任务<br>Accuracy、Precision、Recall、F1-Score、AUC 等传统指标</p>
+<p>📌 生成任务（问答/摘要/代码等）</p>
+<p>BLEU / ROUGE / METEOR：衡量生成文本和参考答案的相似度</p>
+<p>人工评估维度，设计测试问题来从多个维度进行评估：</p>
+<ul>
+<li><p>相关性（回答是否切题）</p>
+</li>
+<li><p>流畅性（语言是否自然）</p>
+</li>
+<li><p>事实正确性（有没有瞎编）</p>
+</li>
+<li><p>多样性（避免重复答复）</p>
+</li>
+</ul>
+<h2 id="附录1—easy-dataset使用"><a href="#附录1—easy-dataset使用" class="headerlink" title="附录1—easy dataset使用"></a>附录1—easy dataset使用</h2><h3 id="安装-Easy-Dataset"><a href="#安装-Easy-Dataset" class="headerlink" title="安装 Easy Dataset"></a>安装 Easy Dataset</h3><h4 id="方法一：使用安装包"><a href="#方法一：使用安装包" class="headerlink" title="方法一：使用安装包"></a>方法一：使用安装包</h4><p>如果操作系统为 Windows、Mac 或 ARM 架构的 Unix 系统，可以直接前往 Easy Dataset 仓库下载安装包：<a target="_blank" rel="noopener" href="https://github.com/ConardLi/easy-dataset/releases/latest">https://github.com/ConardLi/easy-dataset/releases/latest</a></p>
+<h4 id="方法二：使用-Dockerfile"><a href="#方法二：使用-Dockerfile" class="headerlink" title="方法二：使用 Dockerfile"></a>方法二：使用 Dockerfile</h4><ol>
+<li>从 GitHub 拉取 Easy Dataset 仓库</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/ConardLi/easy-dataset.git</span><br><span class="line"><span class="built_in">cd</span> easy-dataset</span><br></pre></td></tr></table></figure>
+<ol>
+<li>构建 Docker 镜像</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker build -t easy-dataset .</span><br></pre></td></tr></table></figure>
+<ol>
+<li>运行容器</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">docker run -d \</span><br><span class="line">    -p 1717:1717 \</span><br><span class="line">    -v &#123;YOUR_LOCAL_DB_PATH&#125;:/app/local-db \</span><br><span class="line">    --name easy-dataset \</span><br><span class="line">    easy-dataset</span><br></pre></td></tr></table></figure>
+<h4 id="方法三：使用-NPM-安装"><a href="#方法三：使用-NPM-安装" class="headerlink" title="方法三：使用 NPM 安装"></a>方法三：使用 NPM 安装</h4><ol>
+<li>下载 Node.js 和 pnpm</li>
+</ol>
+<p>前往 Node.js 和 pnpm 官网安装环境：<a target="_blank" rel="noopener" href="https://nodejs.org/en/download">https://nodejs.org/en/download</a> | <a target="_blank" rel="noopener" href="https://pnpm.io/">https://pnpm.io/</a></p>
+<p>使用以下代码检查 Node.js 版本是否高于 18.0</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">node -v  <span class="comment"># v22.14.0</span></span><br></pre></td></tr></table></figure>
+<ol>
+<li>从 GitHub 拉取 Easy Dataset 仓库</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/ConardLi/easy-dataset.git</span><br><span class="line"><span class="built_in">cd</span> easy-dataset</span><br></pre></td></tr></table></figure>
+<ol>
+<li>安装软件依赖</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pnpm install</span><br></pre></td></tr></table></figure>
+<ol>
+<li>启动 Easy Dataset 应用</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">pnpm build</span><br><span class="line">pnpm start</span><br></pre></td></tr></table></figure>
+<p>控制台如果出现以下输出，则说明启动成功。打开浏览器访问<a target="_blank" rel="noopener" href="http://localhost:1717">对应网址</a>，即可看到 Easy Dataset 的界面。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&gt; easy-dataset@1.2.3 start</span><br><span class="line">&gt; next start -p 1717</span><br><span class="line"></span><br><span class="line">  ▲ Next.js 14.2.25</span><br><span class="line">  - Local:        http://localhost:1717</span><br><span class="line"></span><br><span class="line"> ✓ Ready <span class="keyword">in</span> 287ms</span><br></pre></td></tr></table></figure>
+<h4 id="示例数据下载"><a href="#示例数据下载" class="headerlink" title="示例数据下载"></a>示例数据下载</h4><p>本教程准备了一批互联网公司财报作为示例数据，包含五篇国内互联网公司 2024 年二季度的财报，格式包括 txt 和 markdown。可以使用 git 命令或者直接访问<a target="_blank" rel="noopener" href="https://github.com/llm-factory/FinancialData-SecondQuarter-2024">仓库链接</a>下载。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/llm-factory/FinancialData-SecondQuarter-2024.git</span><br></pre></td></tr></table></figure>
+<p>数据均为纯文本数据，如下为节选内容示例。</p>
+<blockquote>
+<p>快手二季度净利润增超七成，CEO程一笑强调可灵AI商业化</p>
+<p>8月20日，快手科技发布2024年第二季度业绩，总营收同比增长11.6%至约310亿元，经调整净利润同比增长73.7%达46.8亿元左右。该季度，快手的毛利率和经调整净利润率均达到单季新高，分别为55.3%和15.1%。值得一提的是，针对今年加码的AI相关业务，快手联合创始人、董事长兼CEO程一笑在财报后的电话会议上表示，可灵AI将寻求更多与B端合作变现的可能性，也会探索将大模型进一步运用到商业化推荐中，提升算法推荐效率。</p>
+<p><strong>线上营销服务贡献近六成收入，短剧日活用户破3亿</strong></p>
+<p>财报显示，线上营销服务、直播和其他服务（含电商）收入依然是拉动快手营收的“三驾马车”，分别占总营收的56.5%、30.0%和13.5%。线上营销服务收入由2023年同期的143亿元增加22.1%至2024年第二季度的175亿元，财报解释主要是由于优化智能营销解决方案及先进的算法，推动营销客户投放消耗增加。</p>
+</blockquote>
+<h3 id="微调数据生成"><a href="#微调数据生成" class="headerlink" title="微调数据生成"></a>微调数据生成</h3><h4 id="创建项目并配置参数"><a href="#创建项目并配置参数" class="headerlink" title="创建项目并配置参数"></a>创建项目并配置参数</h4><ol>
+<li>在浏览器进入 Easy Dataset 主页后，点击<strong>创建项目</strong></li>
+</ol>
+<p><img src="LLM微调代码实战-甄嬛机器人\1.png" alt="img"></p>
+<ol>
+<li>首先填写<strong>项目名称</strong>（必填），其他两项可留空，点击确认<strong>创建项目</strong></li>
+</ol>
+<p><img src="LLM微调代码实战-甄嬛机器人\2.png" alt="img"></p>
+<ol>
+<li>项目创建后会跳转到<strong>项目设置</strong>页面，打开<strong>模型配置</strong>，选择数据生成时需要调用的大模型 API 接口</li>
+</ol>
+<p><img src="LLM微调代码实战-甄嬛机器人\3.png" alt="img"></p>
+<ol>
+<li>这里以 DeepSeek 模型为例，修改模型<strong>提供商</strong>和<strong>模型名称</strong>，填写 <strong>API 密钥</strong>，点击<strong>保存</strong>后将数据保存到本地，在右上角选择配置好的模型</li>
+</ol>
+<p><img src="LLM微调代码实战-甄嬛机器人\4.png" alt="img"></p>
+<p><img src="LLM微调代码实战-甄嬛机器人\5.png" alt="img"></p>
+<ol>
+<li>打开<strong>任务配置</strong>页面，设置文本分割长度为最小 500 字符，最大 1000 字符。在问题生成设置中，修改为每 10 个字符生成一个问题，修改后在页面最下方<strong>保存任务配置</strong></li>
+</ol>
+<p><img src="LLM微调代码实战-甄嬛机器人\6.png" alt="img"></p>
+<h3 id="处理数据文件"><a href="#处理数据文件" class="headerlink" title="处理数据文件"></a>处理数据文件</h3><ol>
+<li>打开<strong>文献处理</strong>页面，选择并上传示例数据文件，选择文件后点击<strong>上传并处理文件</strong></li>
+</ol>
+<p><img src="LLM微调代码实战-甄嬛机器人\7.png" alt="img"></p>
+<p><img src="LLM微调代码实战-甄嬛机器人\8.png" alt="img"></p>
+<ol>
+<li>上传后会调用大模型解析文件内容并分块，耐心等待文件处理完成，示例数据通常需要 2 分钟左右</li>
+</ol>
+<p><img src="LLM微调代码实战-甄嬛机器人\9.png" alt="img"></p>
+<h3 id="生成微调数据"><a href="#生成微调数据" class="headerlink" title="生成微调数据"></a>生成微调数据</h3><ol>
+<li>待文件处理结束后，可以看到文本分割后的文本段，选择全部文本段，点击<strong>批量生成问题</strong></li>
+</ol>
+<p><img src="LLM微调代码实战-甄嬛机器人\0.png" alt="img"></p>
+<ol>
+<li>点击后会调用大模型根据文本块来构建问题，耐心等待处理完成。视 API 速度，处理时间可能在 20-40 分钟不等</li>
+</ol>
+<p><img src="LLM微调代码实战-甄嬛机器人\10.png" alt="img"></p>
+<ol>
+<li>处理完成后，打开<strong>问题管理</strong>页面，选择全部问题，点击<strong>批量构造数据集</strong>，耐心等待数据生成。视 API 速度，处理时间可能在 20-40 分钟不等</li>
+</ol>
+<p><img src="LLM微调代码实战-甄嬛机器人\11.png" alt="img"></p>
+<p><img src="LLM微调代码实战-甄嬛机器人\12.png" alt="img"></p>
+<p>如果部分问题的答案生成失败，可以重复以上操作再次生成。</p>
+<h3 id="导出数据集"><a href="#导出数据集" class="headerlink" title="导出数据集"></a>导出数据集</h3><ol>
+<li>答案全部生成结束后，打开<strong>数据集管理</strong>页面，点击<strong>导出数据集</strong></li>
+</ol>
+<p><img src="LLM微调代码实战-甄嬛机器人\01.png" alt="img"></p>
+<ol>
+<li>在导出配置中可以选择导出本地使用，也可以直接选择<strong>在</strong> <strong>LLaMA Factory</strong> <strong>中使用</strong>，点击<strong>更新</strong> <strong>LLaMA Factory</strong> <strong>配置</strong>，即可在对应文件夹下生成配置文件，点击<strong>复制</strong>按钮可以将配置路径复制到粘贴板。</li>
+</ol>
+<p><img src="LLM微调代码实战-甄嬛机器人\13.png" alt="img"></p>
+<ol>
+<li>在配置文件路径对应的文件夹中可以看到生成的数据文件，其中主要关注以下三个文件</li>
+</ol>
+<ul>
+<li><p>dataset_info.json：LLaMA Factory 所需的数据集配置文件</p>
+</li>
+<li><p>alpaca.json：以 Alpaca 格式组织的数据集文件</p>
+</li>
+<li><p>sharegpt.json：以 Sharegpt 格式组织的数据集文件</p>
+</li>
+</ul>
+<p>其中 alpaca 和 sharegpt 格式均可以用来微调，两个文件内容相同。</p>
+<p><img src="LLM微调代码实战-甄嬛机器人\14.png" alt="img"></p>
+<h2 id="附录2-FastAPI封装后调用"><a href="#附录2-FastAPI封装后调用" class="headerlink" title="附录2-FastAPI封装后调用"></a>附录2-FastAPI封装后调用</h2><p>用python生态中的fastapi框架，可以很简单的快速搭建web调用的示例，一个后端apply.py封装好已经微调后的模型，进行调用，前端做一个非常简单的对话界面即可。目录结构：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">web_demo</span><br><span class="line">--static </span><br><span class="line">--templates</span><br><span class="line">----index.html</span><br><span class="line">--apply.py</span><br></pre></td></tr></table></figure>
+<p>由于界面比较简单，直接在index.html中用HTML、css渲染、JavaScript交互即可。index篇幅过长，就不在这里列出代码，下面是后端apply.py的代码，直接对微调后的Qwen-huanhuan进行调用，封装给前端即可。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask, request, jsonify, render_template</span><br><span class="line"><span class="keyword">from</span> flask_cors <span class="keyword">import</span> CORS</span><br><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">from</span> transformers <span class="keyword">import</span> AutoTokenizer, AutoModelForCausalLM, GenerationConfig</span><br><span class="line"><span class="keyword">from</span> peft <span class="keyword">import</span> PeftModel</span><br><span class="line"></span><br><span class="line"><span class="comment"># ================= 模型加载区域 =================</span></span><br><span class="line">base_model_dir = <span class="string">&#x27;/root/autodl-tmp/qwen/Qwen-7B-Chat&#x27;</span></span><br><span class="line">lora_weights_dir = <span class="string">&#x27;/root/autodl-tmp/output/Qwen-huanhuan/lora_weights&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;正在加载模型，请稍候...&quot;</span>)</span><br><span class="line">tokenizer = AutoTokenizer.from_pretrained(base_model_dir, trust_remote_code=<span class="literal">True</span>)</span><br><span class="line">base_model = AutoModelForCausalLM.from_pretrained(</span><br><span class="line">    base_model_dir,</span><br><span class="line">    device_map=<span class="string">&quot;auto&quot;</span>,</span><br><span class="line">    trust_remote_code=<span class="literal">True</span></span><br><span class="line">).<span class="built_in">eval</span>()</span><br><span class="line"></span><br><span class="line">model = PeftModel.from_pretrained(base_model, lora_weights_dir)</span><br><span class="line">model = model.merge_and_unload()</span><br><span class="line">model.generation_config = GenerationConfig.from_pretrained(base_model_dir, trust_remote_code=<span class="literal">True</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;模型加载完成！&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># ================= Flask设置 =================</span></span><br><span class="line">app = Flask(__name__)</span><br><span class="line">CORS(app)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 存储历史记录</span></span><br><span class="line">user_histories = &#123;&#125;</span><br><span class="line">SYSTEM_PROMPT = <span class="string">&quot;现在你要扮演皇帝身边的女人--甄嬛。说话要婉转、有文采，多用宫廷用语，称呼对方为&#x27;小主&#x27;或&#x27;大人&#x27;，自称&#x27;本宫&#x27;或&#x27;我想&#x27;。语气要像甄嬛一样聪明、谨慎且带有一丝傲气。&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">get_ai_response</span>(<span class="params">prompt, user_id=<span class="string">&#x27;default_user&#x27;</span></span>):</span><br><span class="line">    history = user_histories.get(user_id, [])</span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 这里的 system 参数在 Qwen 的 chat 接口中通常只在第一轮生效或通过 history 传递</span></span><br><span class="line">    <span class="comment"># 为了保险，我们保持原逻辑，但确保 history 格式正确</span></span><br><span class="line">    response, new_history = model.chat(</span><br><span class="line">        tokenizer,</span><br><span class="line">        prompt,</span><br><span class="line">        history=history,</span><br><span class="line">        system=SYSTEM_PROMPT </span><br><span class="line">    )</span><br><span class="line">    user_histories[user_id] = new_history</span><br><span class="line">    <span class="keyword">return</span> response</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/&#x27;</span></span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">index</span>():</span><br><span class="line">    <span class="keyword">return</span> render_template(<span class="string">&#x27;index.html&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 新增：重置对话接口</span></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/reset&#x27;</span>, methods=[<span class="string">&#x27;POST&#x27;</span>]</span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">reset_chat</span>():</span><br><span class="line">    user_histories[<span class="string">&#x27;default_user&#x27;</span>] = []</span><br><span class="line">    <span class="keyword">return</span> jsonify(&#123;<span class="string">&quot;status&quot;</span>: <span class="string">&quot;success&quot;</span>, <span class="string">&quot;message&quot;</span>: <span class="string">&quot;记忆已重置&quot;</span>&#125;)</span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/chat&#x27;</span>, methods=[<span class="string">&#x27;POST&#x27;</span>]</span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">chat</span>():</span><br><span class="line">    data = request.json</span><br><span class="line">    user_input = data.get(<span class="string">&#x27;message&#x27;</span>, <span class="string">&#x27;&#x27;</span>)</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> user_input:</span><br><span class="line">        <span class="keyword">return</span> jsonify(&#123;<span class="string">&quot;status&quot;</span>: <span class="string">&quot;error&quot;</span>, <span class="string">&quot;message&quot;</span>: <span class="string">&quot;输入不能为空&quot;</span>&#125;), <span class="number">400</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        ai_response = get_ai_response(user_input)</span><br><span class="line">        <span class="keyword">return</span> jsonify(&#123;</span><br><span class="line">            <span class="string">&quot;status&quot;</span>: <span class="string">&quot;success&quot;</span>,</span><br><span class="line">            <span class="string">&quot;response&quot;</span>: ai_response</span><br><span class="line">        &#125;)</span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">f&quot;Error: <span class="subst">&#123;e&#125;</span>&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> jsonify(&#123;</span><br><span class="line">            <span class="string">&quot;status&quot;</span>: <span class="string">&quot;error&quot;</span>,</span><br><span class="line">            <span class="string">&quot;message&quot;</span>: <span class="string">&quot;娘娘正在休息，请稍后再试&quot;</span></span><br><span class="line">        &#125;), <span class="number">500</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    <span class="comment"># AutoDL通常需要host为0.0.0.0</span></span><br><span class="line">    app.run(host=<span class="string">&#x27;0.0.0.0&#x27;</span>, port=<span class="number">6006</span>, debug=<span class="literal">False</span>)</span><br></pre></td></tr></table></figure>
+<p>最终的效果如下：<br><img src="LLM微调代码实战-甄嬛机器人\cover.png" alt="image-20251201144649531"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://worlds3.github.io">5ha</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://worlds3.github.io/2024/12/27/LLM%E5%BE%AE%E8%B0%83%E4%BB%A3%E7%A0%81%E5%AE%9E%E6%88%98-%E7%94%84%E5%AC%9B%E6%9C%BA%E5%99%A8%E4%BA%BA/">https://worlds3.github.io/2024/12/27/LLM%E5%BE%AE%E8%B0%83%E4%BB%A3%E7%A0%81%E5%AE%9E%E6%88%98-%E7%94%84%E5%AC%9B%E6%9C%BA%E5%99%A8%E4%BA%BA/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://worlds3.github.io" target="_blank">5ha的个人空间</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%A4%A7%E6%A8%A1%E5%9E%8B/">大模型</a></div><div class="post-share"><div class="social-share" data-image="/2024/12/27/LLM%E5%BE%AE%E8%B0%83%E4%BB%A3%E7%A0%81%E5%AE%9E%E6%88%98-%E7%94%84%E5%AC%9B%E6%9C%BA%E5%99%A8%E4%BA%BA/cover.png" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/11/17/%E9%98%B3%E5%85%89%E6%98%8E%E5%AA%9A%E7%9A%84%E4%B8%80%E5%A4%A9/" title="阳光明媚的一天"><img class="cover" src="/2025/11/17/%E9%98%B3%E5%85%89%E6%98%8E%E5%AA%9A%E7%9A%84%E4%B8%80%E5%A4%A9/SMU.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">阳光明媚的一天</div></div><div class="info-2"><div class="info-item-1">阳光明媚记得刚来成都时，高数老师给我们说在成都出太阳大家都是要发朋友圈的哈哈哈哈，开始很不理解，不就是出个太阳嘛，有啥大不了的。现在狠狠老实了，成都几乎一直是阴沉沉的天气，真没招了，出个太阳感觉人都活了！！！ 已经是在民大的第四年了，难得有这么好的天气和心情，出去遛弯哈哈哈  </div></div></div></a><a class="pagination-related" href="/2024/11/22/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%88%9D%E7%90%86%E8%A7%A3/" title="目标检测初理解"><img class="cover" src="/2024/11/22/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%88%9D%E7%90%86%E8%A7%A3/image-20250208220137967.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">目标检测初理解</div></div><div class="info-2"><div class="info-item-1">一、BaseLine1.1 整体架构大三上实训内容完成基础的目标检测任务，每张图片仅含有一个检测目标，将其框选并识别出来即可。基本的流程和图像分类一致，区别在数据集的标注上增加边界框的位置标签，以及在model的设计上使用分别使用分类头和位置偏移预测头来区别输出，最后训练时累计分类损失和位置偏移损失，再进行反向梯度传播并更新，大致示意图如下：   数据处理：将数据集标注后返回image、cls_label、loc_label(区别就在多了位置标签) 网络架构：主干CNN提取特征后分别使用分类头和边界框回归头预测 训练流程：与分类任务基本相同，主要是分别计算交叉熵损失和回归损失求和后再进行反向传播 推理预测：前向传播得到结果后，如果预测框和标签框iou大于设定的阈值就将预测结果显示出来  1.2 NMS(非极大抑制)作用：从生成的多个候选框中选择最佳的一个。出于提高目标检测召回率的目的，通常会生成数量众多的候选框，可以通过设置阈值筛选置信度低的，但仍会存在几个较高的置信度的框留下来，nms的作用就是删掉冗余的框，保留最佳的框。 原理：关键就两点，一是选择置信度大的框作为可能最优的框...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2025/12/30/CPT-SFT-DPO%E5%AE%9E%E6%88%98/" title="CPT-SFT-DPO实战"><img class="cover" src="/2025/12/30/CPT-SFT-DPO%E5%AE%9E%E6%88%98/cover.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-12-30</div><div class="info-item-2">CPT-SFT-DPO实战</div></div><div class="info-2"><div class="info-item-1">LLaMA-Factory 实战指南：从 CPT 到 DPO 全流程详解一、LLM 训练框架概览1.1 框架总结在开始实战前，需要明确工具定位。目前的 LLM 训练框架可以类比 CV 领域分为三个层级：     层级 CV 领域类比 LLM 领域对应 特点 典型行为     L1: 底层 PyTorch/TensorFlow搭建 ResNet/CNN Transformers, PEFT（微调）, Accelerate（分布式、训练加速），DeepSpeed（分布式、训练加速）, bitsandbytes（量化）, TRL（DPO，PPO等强化学习），vLLM（推理加速），Torchtune（pytorch维护的一个llm库） 灵活开发 class MyModel(nn.Module): ...  手写 Training Loop   L2: 中间层 YOLO, MMDetection Axolotl，SWIFT（主要支持modelscope)，PaddleNLP， Unsloth 配置驱动、高效、工业级 修改 config.yaml  运行 axolotl train conf...</div></div></div></a><a class="pagination-related" href="/2026/01/16/DIY%E5%BE%AE%E8%B0%83%E4%B8%80%E4%B8%AA%E5%BE%AE%E4%BF%A1%E5%88%86%E8%BA%AB/" title="DIY微调一个微信分身"><img class="cover" src="/2026/01/16/DIY%E5%BE%AE%E8%B0%83%E4%B8%80%E4%B8%AA%E5%BE%AE%E4%BF%A1%E5%88%86%E8%BA%AB/%E5%9B%BE%E7%89%8712.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-16</div><div class="info-item-2">DIY微调一个微信分身</div></div><div class="info-2"><div class="info-item-1">LLM微调Demo项目1.LLama-Factory环境的搭建LLaMA-Factory是一个高效、易用的大模型微调框架，集成了多种微调方法和模型支持。在CloudStudio上搭建环境的步骤如下： 首先创建实验所需的虚拟环境：   然后从GitHub拉取LLaMA-Factory仓库，安装环境依赖：   最后运行llamafactory-cli version进行验证。若显示当前LLaMA-Factory版本，则说明安装成功：   2.Lora微调原理在第一周的YOLO项目中，我们对整个网络的参数进行端到端的训练；而在大模型微调领域，由于模型参数量动辄数十亿甚至千亿级别，全参数微调的计算成本和存储成本都极其高昂。LoRA（Low-Rank Adaptation）正是为解决这一问题而提出的高效微调方法。 LoRA的核心思想源于一个重要假设：模型在适应特定任务时，权重的更新矩阵具有较低的”内在秩”（Intrinsic Rank）。基于这一假设，LoRA不直接修改预训练模型的原始权重W，而是将权重更新量ΔW分解为两个低秩矩阵的乘积：ΔW = BA，其中B∈R^(d×r)、A∈R^(r...</div></div></div></a><a class="pagination-related" href="/2025/11/18/LLM%E5%BE%AE%E8%B0%83%E7%90%86%E8%AE%BA%E6%95%B4%E7%90%86/" title="LLM微调理论整理"><img class="cover" src="/2025/11/18/LLM%E5%BE%AE%E8%B0%83%E7%90%86%E8%AE%BA%E6%95%B4%E7%90%86/image-20251017134429782.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-11-18</div><div class="info-item-2">LLM微调理论整理</div></div><div class="info-2"><div class="info-item-1">大模型训练与微调 大语言模型（LLM）的成长过程，大体可以分为三个阶段：     阶段 目标 学习方式 类比     预训练（Pretraining） 学习语言规律和知识 自监督学习 小孩学习基础语法   监督微调（SFT） 学会听懂“人类指令” 指令-回答对 老师手把手教你回答问题   对齐训练（RLHF） 学会“说得合适” 人类偏好反馈 学会在社交中说话得体      🧩 简单来理解：预训练让模型“有知识”；微调让模型“能沟通”；对齐让模型“合人意”。  一、预训练1.1 什么是预训练？1.1.1 背景与概念在大语言模型（LLM, Large Language Model）中，预训练（Pre-training） 是整个模型训练流程的第一阶段，也是最关键的一步。它的目标是让模型在大规模、无标注的文本数据上，通过自监督学习（Self-supervised Learning）的方式，掌握语言的基础规律和世界常识。这些数据通常来源于互联网网页、新闻、百科、书籍、社交媒体文本、论文等，从而使模型具备理解自然语言、生成自然语言的通用能力。 1.1.2 类比理解可以把预训练后的模型比作刚...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="lv-container" data-id="city" data-uid="MTAyMC82MTA0Ny8zNzUxNw=="></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">5ha</div><div class="author-info-description">得之坦然，失之淡然</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">14</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/worlds3"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/worlds3" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:vmerluckycat5@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎光临我的博客！UESTC研0，热爱AI，不定期更新学习/科研/生活等等。</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%9E%E6%88%98%E7%AC%94%E8%AE%B0%EF%BC%9A%E5%9F%BA%E4%BA%8E-Qwen-7B-LoRA-%E5%BE%AE%E8%B0%83%E2%80%9CChat-%E7%94%84%E5%AC%9B%E2%80%9D"><span class="toc-text">实战笔记：基于 Qwen-7B LoRA 微调“Chat-甄嬛”</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%A0-%E6%A0%B8%E5%BF%83%E6%80%9D%E8%B7%AF%E4%B8%8E%E5%BF%83%E5%BE%97%EF%BC%88%E5%86%99%E5%9C%A8%E5%89%8D%E9%9D%A2%EF%BC%89"><span class="toc-text">🧠 核心思路与心得（写在前面）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E9%A1%B9%E7%9B%AE%E7%9B%AE%E6%A0%87"><span class="toc-text">1. 项目目标</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E7%8E%AF%E5%A2%83%E4%B8%8E%E6%A8%A1%E5%9E%8B%E5%87%86%E5%A4%87"><span class="toc-text">2. 环境与模型准备</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE"><span class="toc-text">2.1 环境配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%A8%A1%E5%9E%8B%E4%B8%8B%E8%BD%BD"><span class="toc-text">2.2 模型下载</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%9F%BA%E5%BA%A7%E6%A8%A1%E5%9E%8B%E6%B5%8B%E8%AF%95"><span class="toc-text">2.3 基座模型测试</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E6%95%B0%E6%8D%AE%E5%B7%A5%E7%A8%8B%EF%BC%88%E6%A0%B8%E5%BF%83%E9%9A%BE%E7%82%B9%EF%BC%89"><span class="toc-text">3. 数据工程（核心难点）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E8%A1%A5%E5%85%85%E7%8E%AF%E5%A2%83"><span class="toc-text">3.1 补充环境</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E6%B7%B1%E5%BA%A6%E7%90%86%E8%A7%A3%EF%BC%9ASFT%E6%95%B0%E6%8D%AE%E6%9E%84%E5%BB%BA"><span class="toc-text">3.2 深度理解：SFT数据构建</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%EF%BC%881%EF%BC%89%E6%8C%87%E4%BB%A4%E5%BE%AE%E8%B0%83%EF%BC%88Instruction-Tuning%EF%BC%89%EF%BC%9A"><span class="toc-text">（1）指令微调（Instruction Tuning）：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%EF%BC%882%EF%BC%89%E9%A2%86%E5%9F%9F%E5%BE%AE%E8%B0%83%EF%BC%88Domain-SFT%EF%BC%89"><span class="toc-text">（2）领域微调（Domain SFT）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E6%95%B0%E6%8D%AE%E6%9E%84%E5%BB%BA%E7%AD%96%E7%95%A5%EF%BC%9A%E4%BB%8E%E2%80%9C%E5%89%A7%E6%9C%AC%E2%80%9D%E5%88%B0%E2%80%9C%E6%8C%87%E4%BB%A4%E2%80%9D"><span class="toc-text">3.3 数据构建策略：从“剧本”到“指令”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E8%A1%A5%E5%85%85%E5%86%85%E5%AE%B9%E2%80%94-%E5%A6%82%E4%BD%95%E4%BB%8E%E5%A4%8D%E6%9D%82%E8%AF%AD%E6%96%99%E4%B8%AD%E6%9E%84%E5%BB%BA%E9%AB%98%E8%B4%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E9%9B%86%EF%BC%9F"><span class="toc-text">3.4 补充内容—-如何从复杂语料中构建高质量数据集？</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E4%B8%80%EF%BC%9A%E5%BC%80%E6%BA%90%E7%A5%9E%E5%99%A8EasyDataSet"><span class="toc-text">方案一：开源神器EasyDataSet</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E4%BA%8C%EF%BC%9A%E5%88%A9%E7%94%A8%E5%90%84%E7%A7%8D%E5%B7%A5%E5%85%B7%E6%90%AD%E5%BB%BA%E8%87%AA%E5%B7%B1%E7%9A%84%E5%A4%84%E7%90%86%E7%9A%84PipeLine"><span class="toc-text">方案二：利用各种工具搭建自己的处理的PipeLine</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83%E5%92%8C%E6%8E%A8%E7%90%86"><span class="toc-text">4. 模型训练和推理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83"><span class="toc-text">4.1 模型训练</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%8A%A0%E8%BD%BD%E4%B8%8E%E6%8E%A8%E7%90%86%E6%B5%8B%E8%AF%95"><span class="toc-text">4.2 加载与推理测试</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%A8%A1%E5%9E%8B%E8%AF%84%E4%BC%B0"><span class="toc-text">5. 模型评估</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E9%87%8F%E5%8C%96%E6%8C%87%E6%A0%87"><span class="toc-text">5.1 量化指标</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E9%AA%8C%E8%AF%81%E9%9B%86-Loss-Validation-Loss"><span class="toc-text">1. 验证集 Loss (Validation Loss)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E6%96%87%E6%9C%AC%E9%87%8D%E5%90%88%E5%BA%A6%E6%8C%87%E6%A0%87-BLEU-amp-ROUGE"><span class="toc-text">2. 文本重合度指标 (BLEU &amp; ROUGE)</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E6%9E%84%E5%BB%BA%E8%AF%84%E6%B5%8B%E9%9B%86%E8%BF%9B%E8%A1%8C%E6%89%93%E5%88%86"><span class="toc-text">5.2 构建评测集进行打分</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%B9%E6%A1%88-A%EF%BC%9ALLM-as-a-Judge-%E5%A4%A7%E6%A8%A1%E5%9E%8B%E8%A3%81%E5%88%A4"><span class="toc-text">方案 A：LLM-as-a-Judge (大模型裁判)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%B9%E6%A1%88-B%EF%BC%9A%E4%BA%BA%E5%B7%A5%E4%B8%BB%E8%A7%82%E8%AF%84%E4%BC%B0-Human-Eval"><span class="toc-text">方案 B：人工主观评估 (Human Eval)</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E8%A1%A5%E5%85%85%E5%86%85%E5%AE%B9%E2%80%94%E8%AF%84%E4%BC%B0%E5%BE%AE%E8%B0%83%E6%95%88%E6%9E%9C"><span class="toc-text">5.3 补充内容—评估微调效果</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%951%E2%80%94easy-dataset%E4%BD%BF%E7%94%A8"><span class="toc-text">附录1—easy dataset使用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85-Easy-Dataset"><span class="toc-text">安装 Easy Dataset</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%B9%E6%B3%95%E4%B8%80%EF%BC%9A%E4%BD%BF%E7%94%A8%E5%AE%89%E8%A3%85%E5%8C%85"><span class="toc-text">方法一：使用安装包</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%B9%E6%B3%95%E4%BA%8C%EF%BC%9A%E4%BD%BF%E7%94%A8-Dockerfile"><span class="toc-text">方法二：使用 Dockerfile</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%B9%E6%B3%95%E4%B8%89%EF%BC%9A%E4%BD%BF%E7%94%A8-NPM-%E5%AE%89%E8%A3%85"><span class="toc-text">方法三：使用 NPM 安装</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%A4%BA%E4%BE%8B%E6%95%B0%E6%8D%AE%E4%B8%8B%E8%BD%BD"><span class="toc-text">示例数据下载</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BE%AE%E8%B0%83%E6%95%B0%E6%8D%AE%E7%94%9F%E6%88%90"><span class="toc-text">微调数据生成</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E9%A1%B9%E7%9B%AE%E5%B9%B6%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0"><span class="toc-text">创建项目并配置参数</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%84%E7%90%86%E6%95%B0%E6%8D%AE%E6%96%87%E4%BB%B6"><span class="toc-text">处理数据文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%9F%E6%88%90%E5%BE%AE%E8%B0%83%E6%95%B0%E6%8D%AE"><span class="toc-text">生成微调数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AF%BC%E5%87%BA%E6%95%B0%E6%8D%AE%E9%9B%86"><span class="toc-text">导出数据集</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%99%84%E5%BD%952-FastAPI%E5%B0%81%E8%A3%85%E5%90%8E%E8%B0%83%E7%94%A8"><span class="toc-text">附录2-FastAPI封装后调用</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/01/16/DIY%E5%BE%AE%E8%B0%83%E4%B8%80%E4%B8%AA%E5%BE%AE%E4%BF%A1%E5%88%86%E8%BA%AB/" title="DIY微调一个微信分身"><img src="/2026/01/16/DIY%E5%BE%AE%E8%B0%83%E4%B8%80%E4%B8%AA%E5%BE%AE%E4%BF%A1%E5%88%86%E8%BA%AB/%E5%9B%BE%E7%89%8712.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="DIY微调一个微信分身"/></a><div class="content"><a class="title" href="/2026/01/16/DIY%E5%BE%AE%E8%B0%83%E4%B8%80%E4%B8%AA%E5%BE%AE%E4%BF%A1%E5%88%86%E8%BA%AB/" title="DIY微调一个微信分身">DIY微调一个微信分身</a><time datetime="2026-01-16T13:13:55.000Z" title="发表于 2026-01-16 21:13:55">2026-01-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/12/30/CPT-SFT-DPO%E5%AE%9E%E6%88%98/" title="CPT-SFT-DPO实战"><img src="/2025/12/30/CPT-SFT-DPO%E5%AE%9E%E6%88%98/cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="CPT-SFT-DPO实战"/></a><div class="content"><a class="title" href="/2025/12/30/CPT-SFT-DPO%E5%AE%9E%E6%88%98/" title="CPT-SFT-DPO实战">CPT-SFT-DPO实战</a><time datetime="2025-12-30T12:50:36.000Z" title="发表于 2025-12-30 20:50:36">2025-12-30</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/12/29/Pyinstaller%E6%89%93%E5%8C%85YOLOv11%E5%92%8CPyQt5%E9%A1%B9%E7%9B%AE%E4%B8%BAexe%E6%96%87%E4%BB%B6/" title="Pyinstaller打包YOLOv11和PyQt5项目为exe文件">Pyinstaller打包YOLOv11和PyQt5项目为exe文件</a><time datetime="2025-12-29T03:40:05.000Z" title="发表于 2025-12-29 11:40:05">2025-12-29</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/12/28/YOLO%E5%BC%95%E5%85%A5%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%A8%A1%E5%9D%97/" title="YOLO引入注意力模块"><img src="/2025/12/28/YOLO%E5%BC%95%E5%85%A5%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%A8%A1%E5%9D%97/cover.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="YOLO引入注意力模块"/></a><div class="content"><a class="title" href="/2025/12/28/YOLO%E5%BC%95%E5%85%A5%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%A8%A1%E5%9D%97/" title="YOLO引入注意力模块">YOLO引入注意力模块</a><time datetime="2025-12-28T14:32:50.000Z" title="发表于 2025-12-28 22:32:50">2025-12-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/11/18/LLM%E5%BE%AE%E8%B0%83%E7%90%86%E8%AE%BA%E6%95%B4%E7%90%86/" title="LLM微调理论整理"><img src="/2025/11/18/LLM%E5%BE%AE%E8%B0%83%E7%90%86%E8%AE%BA%E6%95%B4%E7%90%86/image-20251017134429782.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="LLM微调理论整理"/></a><div class="content"><a class="title" href="/2025/11/18/LLM%E5%BE%AE%E8%B0%83%E7%90%86%E8%AE%BA%E6%95%B4%E7%90%86/" title="LLM微调理论整理">LLM微调理论整理</a><time datetime="2025-11-17T16:13:40.000Z" title="发表于 2025-11-18 00:13:40">2025-11-18</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(/2024/12/27/LLM%E5%BE%AE%E8%B0%83%E4%BB%A3%E7%A0%81%E5%AE%9E%E6%88%98-%E7%94%84%E5%AC%9B%E6%9C%BA%E5%99%A8%E4%BA%BA/cover.png);"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By 5ha</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.2</a></span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.2"></script><script src="/js/main.js?v=5.5.2"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.0.0/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+
+  const loadLivere = (el, path) => {
+    window.livereOptions = {
+      refer: path || location.pathname
+    }
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyLivere = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    if (typeof LivereTower === 'object') window.LivereTower.init()
+    else {
+      (function(d, s) {
+          var j, e = d.getElementsByTagName(s)[0];
+          if (typeof LivereTower === 'function') { return; }
+          j = d.createElement(s);
+          j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+          j.async = true;
+          e.parentNode.insertBefore(j, e);
+      })(document, 'script');
+    }
+  }
+
+  if (isShuoshuo) {
+    'Livere' === 'Livere'
+      ? window.shuoshuoComment = { loadComment: loadLivere }
+      : window.loadOtherComment = loadLivere
+    return
+  }
+
+  if ('Livere' === 'Livere' || !false) {
+    if (false) btf.loadComment(document.getElementById('lv-container'), loadLivere)
+    else loadLivere()
+  } else {
+    window.loadOtherComment = loadLivere
+  }
+})()</script></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/fireworks.min.js"></script><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-ribbon.min.js" size="230" alpha="0.6" zIndex="-1" mobile="false" data-click="false"></script><script async data-pjax src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><i class="fas fa-spinner fa-pulse" id="loading-status" hidden="hidden"></i><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="local-search-input"><input placeholder="搜索文章" type="text"/></div><hr/><div id="local-search-results"></div><div class="ais-Pagination" id="local-search-pagination" style="display:none;"><ul class="ais-Pagination-list"></ul></div><div id="local-search-stats"></div></div><div id="search-mask"></div><script src="/js/search/local-search.js?v=5.5.2"></script></div></div></body></html>
